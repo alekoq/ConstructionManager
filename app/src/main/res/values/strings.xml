@@ -1,0 +1,40 @@
+<resources>
+    <string name="app_name">ConstructionManager</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="addFlaw">Add new flaw</string>
+    <string name="addImage">Add new floor plan</string>
+    <string name="save">Save</string>
+    <string name="room">Room</string>
+    <string name="apartment">Apartment</string>
+    <string name="flaw">Flaw</string>
+    <string name="title_flaw_dialog">Edit information</string>
+    <string name="button_add_flaw">Add flaw</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="error_empty">Field can\'t be empty</string>
+    <string name="message_saved">Image saved!</string>
+    <string name="message_error_saving">There was an error saving the image</string>
+    <string name="permission_explanation">To load and save images, the app requires permission to use external storage</string>
+    <string name="header_number">Number</string>
+    <string name="message_csv_saved">Table saved as CSV</string>
+    <string name="message_error_savingCSV">There was an error saving the csv-file</string>
+    <string name="OK">OK</string>
+    <string name="title_info_dialog">Flaw info</string>
+    <string name="edit">Edit</string>
+    <string name="ret">Return</string>
+    <string name="version">v.0.1.1</string>
+    <string name="sep">,</string>
+    <string name="saveas">Save as</string>
+    <string name="specify_saveas">Save image and flaws as</string>
+    <string name="info">More info about app</string>
+    <string name="saveLocation">Save location</string>
+    <string name="back">Back</string>
+    <string name="error">Error</string>
+    <string name="noChanges">No changes made. Not saving.</string>
+    <string name="dir_error">Error when creating new direcotry for app files</string>
+    <string name="projectSaved">Project saved succesfully</string>
+    <string name="projectSaveError">There was an error saving the project</string>
+    <string name="saveProject">Save Project</string>
+    <string name="loadProject">Load Project</string>
+    <string name="projectLoadError">There was an error loading the project file</string>
+    <string name="ClassNotFound">Class not found</string>
+</resources>

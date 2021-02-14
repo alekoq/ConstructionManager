@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:paddingLeft="@dimen/fab_margin"
+    android:paddingTop="@dimen/fab_margin"
+    android:paddingRight="@dimen/fab_margin"
+    android:paddingBottom="@dimen/fab_margin">
+
+
+    <TextView
+        android:id="@+id/infoTitleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_row="0"
+        android:layout_column="0"
+        android:padding="@dimen/fab_margin"
+        android:text="@string/app_name" />
+
+    <TextView
+        android:id="@+id/infoVersionTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_row="0"
+        android:layout_column="1"
+        android:text="@string/version" />
+
+    <TextView
+        android:id="@+id/infoSaveLocationTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_row="1"
+        android:layout_column="0"
+        android:padding="@dimen/fab_margin"
+        android:text="@string/saveLocation" />
+
+    <TextView
+        android:id="@+id/saveLocationTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="init" />
+</GridLayout>

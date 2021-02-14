@@ -1,0 +1,39 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/addFlaw"
+        android:icon="@drawable/ic_baseline_add_24"
+        android:title="@string/addFlaw"
+        app:showAsAction="always">
+    </item>
+
+    <item
+        android:id="@+id/addImage"
+        android:title="@string/addImage"
+        app:showAsAction="never">
+    </item>
+
+    <item
+        android:id="@+id/save"
+        android:title="@string/save"
+        app:showAsAction="never">
+    </item>
+    <item
+        android:id="@+id/saveProject"
+        android:title="@string/saveProject"
+        app:showAsAction="never">
+    </item>
+    <item
+        android:id="@+id/loadProject"
+        android:title="@string/loadProject"
+        app:showAsAction="never">
+    </item>
+    <item
+        android:id="@+id/info"
+        android:title="@string/info"
+        app:showAsAction="never">
+    </item>
+
+
+
+</menu>

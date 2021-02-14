@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ConstructionManager</string>
+    <string name="addFlaw">Lisää uusi puute</string>
+    <string name="addImage">Lisää uusi pohjapiirros</string>
+    <string name="save">Tallenna</string>
+    <string name="room">Tila</string>
+    <string name="apartment">Asunto</string>
+    <string name="flaw">Puute</string>
+    <string name="title_flaw_dialog">Muokkaa tietoja</string>
+    <string name="button_add_flaw">Lisää puute</string>
+    <string name="button_cancel">Peruuta</string>
+    <string name="error_empty">Kenttä ei saa olla tyhjä</string>
+    <string name="message_saved">Kuva tallennettu!</string>
+    <string name="message_error_saving">Kuvan tallentamisessa ilmeni ongelma</string>
+    <string name="permission_explanation">Kuvien lataamiseksi ja tallentamiseksi sovellus tarvitsee luvan käyttää puhelimen muistia</string>
+    <string name="header_number">Numero</string>
+    <string name="message_csv_saved">Taulukko tallennettu CSV-tiedostona</string>
+    <string name="message_error_savingCSV">CSV-tiedoston tallentamisessa ilmeni ongelma</string>
+    <string name="OK">OK</string>
+    <string name="title_info_dialog">Puutteen tiedot</string>
+    <string name="edit">Muokkaa</string>
+    <string name="ret">Palaa</string>
+    <string name="version">v.0.1.1</string>
+    <string name="sep">;</string>
+    <string name="saveas">Tallenna nimellä</string>
+    <string name="specify_saveas">Tallenna kuva ja merkinnät nimellä</string>
+    <string name="info">Lisätietoja sovelluksesta</string>
+    <string name="saveLocation">Tallennuspaikka</string>
+    <string name="back">Takaisin</string>
+    <string name="error">Virhe</string>
+    <string name="noChanges">Ei tehtyjä muutoksia. Ei tallennettu.</string>
+    <string name="dir_error">Virhe luotaessa kansiota sovelluksen tiedostoille</string>
+    <string name="projectSaved">Projekti tallennettu onnistuneesti</string>
+    <string name="projectSaveError">Projektin tallennuksessa ilmeni ongelma</string>
+    <string name="saveProject">Tallenna projekti</string>
+    <string name="loadProject">Lataa projekti</string>
+    <string name="projectLoadError">Projektitiedoston lataamisessa ilmeni ongelma</string>
+    <string name="ClassNotFound">Luokkaa ei löytynyt</string>
+</resources>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/addFlawGridLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:columnCount="1"
+    android:paddingLeft="@dimen/fab_margin"
+    android:paddingTop="@dimen/fab_margin"
+    android:paddingRight="@dimen/fab_margin"
+    android:paddingBottom="@dimen/fab_margin"
+    android:useDefaultMargins="true">
+
+
+    <TextView
+        android:id="@+id/apartmentInfoTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_row="0"
+        android:layout_column="0"
+        android:layout_gravity="start"
+        android:text="@string/apartment" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/apartmentInfoTextInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_row="1"
+        android:layout_column="0"
+        android:enabled="false">
+
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/roomInfoTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_row="2"
+        android:layout_column="0"
+        android:layout_gravity="start"
+        android:text="@string/room" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/roomInfoTextInput"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_row="4"
+        android:layout_column="0"
+        android:enabled="false">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/flawInfoTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_row="5"
+        android:layout_column="0"
+        android:text="@string/flaw" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/flawInfoTextInput"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_row="6"
+        android:layout_column="0"
+        android:enabled="false">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+</GridLayout>
