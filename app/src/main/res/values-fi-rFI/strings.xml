@@ -37,4 +37,7 @@
     <string name="loadProject">Lataa projekti</string>
     <string name="projectLoadError">Projektitiedoston lataamisessa ilmeni ongelma</string>
     <string name="ClassNotFound">Luokkaa ei löytynyt</string>
+    <string name="chooseSave">Valitse tallennustiedosto</string>
+    <string name="load">Lataa</string>
+    <string name="noSelectedFile">Valitse tiedosto</string>
 </resources>

@@ -252,6 +252,7 @@ public class MainActivity extends AppCompatActivity{
     public void newFab(FlawInfo fi, RelativeLayout.LayoutParams lp) {
         final FlawActionButton fab = new FlawActionButton(this);
 
+        //Klikkaaminen näyttää fabin tiedot ja mahdollistaa niiden muokkaamisen
         fab.setOnClickListener(new View.OnClickListener(){
 
             @Override
@@ -261,9 +262,8 @@ public class MainActivity extends AppCompatActivity{
             }
         });
 
-        /**
-         * Kun painetaan pitkään voidaan merkintää siirtää
-         */
+
+        //Kun painetaan pitkään voidaan merkintää siirtää
         fab.setOnLongClickListener(new View.OnLongClickListener(){
             @Override
             public boolean onLongClick(View v) {
@@ -329,41 +329,9 @@ public class MainActivity extends AppCompatActivity{
         //Luo uuden infoFlawFragmentin ja lähettää sille fabin flawInfon argumenttina
         FlawInfoFragment infoFragment = FlawInfoFragment.newInstance(0, fi);
 
-        /**
-         * Bundlella objektin lähettäminen mahdotonta?
-         *
-        Bundle args = new Bundle();
-        String[] fiArray = {fi.getApartment(), fi.getRoom(), fi.getFlaw()};
-        args.putStringArray("flawinfo", fiArray);
-        infoFragment.setArguments(args);
-         */
         infoFragment.show(getSupportFragmentManager(), "infoFragment");
     }
 
-
-    /**
-    //Piirtää bitmappiin
-    public void ProjectedBitMap(){
-
-        if(prvX<0 || prvY<0 || prvX > imageView.getWidth() || prvY > imageView.getHeight()){
-            //outside ImageView
-            return;
-        }else{
-
-            float ratioHeight = (float)canvasMaster.getHeight()/(float)imageView.getHeight();
-            float ratioWidth = (float)canvasMaster.getWidth()/(float)imageView.getWidth();
-
-            //piirtää ympyrän sekä oikean numeron sen sisään
-            canvasMaster.drawCircle(prvX, prvY , 25, paintDraw);
-            canvasMaster.drawText(Integer.toString(counter), prvX * ratioWidth - centerText, prvY * ratioHeight +11, paintText);
-            counter++;
-            if(counter>=10){
-                centerText=20;
-            }
-            imageView.invalidate();
-        }
-    }
-     **/
 
 
     @Override
@@ -393,26 +361,30 @@ public class MainActivity extends AppCompatActivity{
                 return true;
             case R.id.addImage:
                 //checks if permissions are okay, then opens menu where image can be loaded
-                checkPermission(bitmapMaster, "load", "");
+                if(checkPermission()){
+                    loadImage();
+                }
                 return true;
             case R.id.save:
                 if (blueprintLoaded) {
-                    if(bitmapMaster != null){
+                    if(bitmapMaster != null && checkPermission()){
                         //Luo alertdialogin jossa kysytään millä nimellä tallennetaan. Tallentaa samalla nimellä sekä kuvan että csv:n
-                        showSaveAsDialog();
+                        showSaveAsDialog(true);
                     }
                 }
                 return true;
             case R.id.saveProject:
-                if(flawInfoList.size()>0)
-                    saveProject("test");
+                if(flawInfoList.size()>0 && checkPermission())
+                    showSaveAsDialog(false);
                 return true;
             case R.id.loadProject:
                 if(flawInfoList.size()>0){
                     //Kysy varmistus jatkamisesta
-                    return true;
                 }
-                checkPermission(bitmapMaster, "loadData", "");
+                if (checkPermission()){
+                    loadData();
+                }
+
                 return true;
             case R.id.info:
                 AlertDialog.Builder builder =
@@ -453,33 +425,7 @@ public class MainActivity extends AppCompatActivity{
         return super.onOptionsItemSelected(item);
     }
 
-    public void showSaveAsDialog(){
-        // luodaan dialogi
-        AlertDialog.Builder builder =
-                new AlertDialog.Builder(MainActivity.this);
-        final View saveDialogView = MainActivity.this.getLayoutInflater().inflate(
-                R.layout.saveas_fragment, null);
 
-        builder.setView(saveDialogView); // lisätään GUI dialogiin
-
-        // asetetaan dialogin viesti
-        //builder.setTitle(R.string.saveas);
-
-        // liitetään textInputit:t
-        final TextInputLayout saveTI = (TextInputLayout) saveDialogView.findViewById(R.id.saveAsTextInput);
-
-        // lisätään Add flaw painike
-        builder.setPositiveButton(R.string.save,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        checkPermission(bitmapMaster, "save", saveTI.getEditText().getText().toString());
-                    }
-                });
-
-        // näytetään dialogi
-        builder.create().show();
-    }
 
     //Ikonin väärin muutos (kun valittuna) vaatii tämän
     @Override
@@ -540,14 +486,6 @@ public class MainActivity extends AppCompatActivity{
                     }
             }
 
-            else if(requestCode == RQS_DATA){
-                Uri fileUri = data.getData();
-                String filePath = fileUri.getPath();
-
-                loadProject(filePath);
-            }
-
-
         }
     }
 
@@ -570,8 +508,8 @@ public class MainActivity extends AppCompatActivity{
     }
 
     //varmistaa että on asetettu laitteesta lupa lataamiseen/tallentamiseen
-    private void checkPermission(final Bitmap bm, final String saveLoad, final String fileName){
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED && check) {
+    private boolean checkPermission() {
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED && check) {
 
             // näyttää selityksen miksi lupaa vaaditaan
             if (shouldShowRequestPermissionRationale(
@@ -590,9 +528,8 @@ public class MainActivity extends AppCompatActivity{
                                 // pyydetään lupa
                                 requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                                         SAVE_IMAGE_PERMISSION_REQUEST_CODE);
-                                check=false;
-                                checkPermission(bm, saveLoad, fileName);
-
+                                check = false;
+                                checkPermission();
                             }
                         }
                 );
@@ -608,66 +545,96 @@ public class MainActivity extends AppCompatActivity{
             }
 
 
+        } else {
+            return true;
         }
 
-        //TODO Tälle oma funktio, jotta ei tarvitse vammailla bitmappien kanssa ymsyms. else palauttaa esim truen kun kaikki kunnossa
-        else { // jos sovelluksella on jo lupa kirjoittaa
+        return false;
+    }
 
-            if(saveLoad=="save") {
-                //jos lisätty puutteita
-                if(!flawInfoList.isEmpty()) {
-                    saveBitmap(bm, fileName);
-                    saveFlaws(fileName);
-                }
-                else{
-                    // näytetään viesti virheestä
-                    toast(getString(R.string.noChanges));
-                }
-            }
-            else if(saveLoad=="load"){
-                Intent intent = new Intent(Intent.ACTION_PICK,
-                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(intent, RQS_IMAGE1);
-            }
-            else if(saveLoad=="loadData"){
-                Uri uri = Uri.parse(dir + projects + "*.ser");
-                Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT, uri);
-                chooseFile.setDataAndType(uri, "*/*");
-                chooseFile = Intent.createChooser(chooseFile, "Choose a file");
-                startActivityForResult(chooseFile, RQS_DATA);
-            }
+
+    /**
+     * Apufunktioita tallennukseen ja lataamiseen
+     ************************************************************************************************************
+     */
+    //Kutsuu muita tallennusfunkioita bitmapin ja puutteiden tallentamiseen
+    private void save(String fileName){
+        //jos lisätty puutteita
+        if(!flawInfoList.isEmpty()) {
+            saveBitmap(fileName);
+            saveFlaws(fileName);
+        }
+        else{
+            // näytetään viesti virheestä
+            toast(getString(R.string.noChanges));
         }
     }
 
-    private void createAppDir(){
-        File root = new File(dir);
-
-        if(!root.exists()){
-            if(!root.mkdirs()){
-                // näytetään viesti virheestä
-                toast(getString(R.string.dir_error));
-            }
-            File csvdir = new File(root.getPath()+csvs);
-            csvdir.mkdir();
-            File projectdir = new File(root.getPath()+projects);
-            projectdir.mkdir();
-            File imagedir = new File(root.getPath()+images);
-            imagedir.mkdir();
-        }
+    //Lataa galleriasta pohjapiirroksen
+    private void loadImage(){
+            Intent intent = new Intent(Intent.ACTION_PICK,
+                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(intent, RQS_IMAGE1);
     }
 
-    private void saveBitmap(Bitmap bm, String fileName) {
+    //Luo uuden LoadProjectFragmentin jossa voi valita ladattavan projektin. Kutsuu tiedostonimen perusteella loadProject()
+    private void loadData(){
+        LoadProjectFragment loadFragment = new LoadProjectFragment();
+
+        loadFragment.show(getSupportFragmentManager(), "loadFragment");
+    }
+
+    //Tallentaa nimellä joko projektin: finalSave=false, tai kuvan ja puutteet: finalSave=true
+    public void showSaveAsDialog(final boolean finalSave){
+        // luodaan dialogi
+        AlertDialog.Builder builder =
+                new AlertDialog.Builder(MainActivity.this);
+        final View saveDialogView = MainActivity.this.getLayoutInflater().inflate(
+                R.layout.saveas_fragment, null);
+
+        builder.setView(saveDialogView); // lisätään GUI dialogiin
+
+        // asetetaan dialogin viesti
+        //builder.setTitle(R.string.saveas);
+
+        // liitetään textInputit:t
+        final TextInputLayout saveTI = (TextInputLayout) saveDialogView.findViewById(R.id.saveAsTextInput);
+
+        // lisätään Add flaw painike
+        builder.setPositiveButton(R.string.save,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if(checkPermission()){
+                            //Kuvan ja puutteiden tallennus
+                            if(finalSave) {
+                                save(saveTI.getEditText().getText().toString());
+                            }
+                            //Projektin tallennus
+                            else{
+                                saveProject(saveTI.getEditText().getText().toString());
+                            }
+                        }
+                    }
+                });
+
+        // näytetään dialogi
+        builder.create().show();
+    }
+
+    /************************************************************************************************************
+     */
+
+    /**
+     * VARSINAISIA TALLENNUS JA LATAUSFUNKTIOITA
+     * ***********************************************************************************************************
+     */
+
+    private void saveBitmap(String fileName) {
 
         // käytetään kuvan nimenä "ConstructionManager" ja kellonaika
         final String name = dir + images + "/" + fileName + ".png";
 
-        // lisätään kuva laitteelle
-        /**
-        String location = MediaStore.Images.Media.insertImage(
-                MainActivity.this.getContentResolver(), bm, name,
-                "ConstructionManager flaws"
-        );
-         **/
 
         //screenshot tallennusratkaisu jossa kaikki lisätyt FABitkin tulee mukaan
         View v1 = getWindow().getDecorView().findViewById(R.id.imageRelativeLayout);
@@ -682,31 +649,6 @@ public class MainActivity extends AppCompatActivity{
             e.printStackTrace();
         }
 
-        /**
-        String location = MediaStore.Images.Media.insertImage(
-                MainActivity.this.getContentResolver(), screenshot, name,
-                "ConstructionManager flaws"
-        );
-
-        if (location != null) {
-            // näytetään viesti tallennuksesta
-            Toast message = Toast.makeText(MainActivity.this,
-                    //R.string.message_saved,
-                    name,
-                    Toast.LENGTH_LONG);
-            message.setGravity(Gravity.CENTER, message.getXOffset() / 2,
-                    message.getYOffset() / 2);
-            message.show();
-        } else {
-            // näytetään viesti virheestä
-            Toast message = Toast.makeText(MainActivity.this,
-                    R.string.message_error_saving, Toast.LENGTH_LONG);
-            message.setGravity(Gravity.CENTER, message.getXOffset() / 2,
-                    message.getYOffset() / 2);
-            message.show();
-        }
-
-         **/
     }
 
 
@@ -783,18 +725,16 @@ public class MainActivity extends AppCompatActivity{
     }
 
 
-    private void loadProject(String filePath) {
+    public void loadProject(String fileName) {
         SaveBitmap sb = new SaveBitmap();
 
         Bitmap tempBitmap;
-        //TODO Avaa tiedostohakemisto tiedoston valintaa varten
-        String fileName = "test";
 
         try {
             initialize();
 
-            //FileInputStream fileIn = new FileInputStream(dir + projects + "/" + fileName + "Bitmap.ser");
-            FileInputStream fileIn = new FileInputStream(filePath);
+            FileInputStream fileIn = new FileInputStream(dir + projects + "/" + fileName + "Bitmap.ser");
+            //FileInputStream fileIn = new FileInputStream(filePath);
             ObjectInputStream in = new ObjectInputStream(fileIn);
 
             sb.readObject(in);
@@ -846,7 +786,31 @@ public class MainActivity extends AppCompatActivity{
 
     }
 
+    /************************************************************************************************************
+     */
 
+
+    /**
+        Pienempiä apufunktioita
+     */
+
+    //Luo ensimmäisellä kerralla projektikansion
+    private void createAppDir(){
+        File root = new File(dir);
+
+        if(!root.exists()){
+            if(!root.mkdirs()){
+                // näytetään viesti virheestä
+                toast(getString(R.string.dir_error));
+            }
+            File csvdir = new File(root.getPath()+csvs);
+            csvdir.mkdir();
+            File projectdir = new File(root.getPath()+projects);
+            projectdir.mkdir();
+            File imagedir = new File(root.getPath()+images);
+            imagedir.mkdir();
+        }
+    }
 
     //Funktio ponnahdusilmoituksen esittämiseen
     private void toast(String s){
@@ -856,42 +820,5 @@ public class MainActivity extends AppCompatActivity{
                 message.getYOffset() / 4);
         message.show();
     }
-
-
-    /* Laitteen kääntämiseen. EI TOIMINNASSA
-    private void initializeImageRetainingFragment() {
-        // etsi fragmentti kun activity käynnistyy uudelleen
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        imageRetainingFragment = (ImageRetainingFragment) fragmentManager.findFragmentByTag(FRAGMENT_NAME);
-        // luo fragmentti ja bitmap ensimmäistä kertaa
-        if (imageRetainingFragment == null) {
-            imageRetainingFragment = new ImageRetainingFragment();
-            fragmentManager.beginTransaction()
-                    // Add a fragment to the activity state.
-                    .add(imageRetainingFragment, FRAGMENT_NAME)
-                    .commit();
-        }
-
-    }
-
-
-    //Yrittää  ladata imagen uudestaan kun laitetta käännetään
-    //Kääntäminen asetettu pois käytöstä toistaiseksi
-    private void tryLoadImage() {
-        if (imageRetainingFragment == null) {
-            return;
-        }
-        Bitmap bitmap = imageRetainingFragment.getImage();
-        if (bitmap == null) {
-            return;
-        }
-
-        imageView.setImageBitmap(bitmap);
-
-        //Kääntäminen ei toimi oikein nykyisellään
-        isEditable=false;
-    }
-
-    */
 
 }

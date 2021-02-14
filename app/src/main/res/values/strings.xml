@@ -37,4 +37,7 @@
     <string name="loadProject">Load Project</string>
     <string name="projectLoadError">There was an error loading the project file</string>
     <string name="ClassNotFound">Class not found</string>
+    <string name="chooseSave">Choose savefile</string>
+    <string name="load">Load</string>
+    <string name="noSelectedFile">Select a file</string>
 </resources>
