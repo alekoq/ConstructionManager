@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GridLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingLeft="@dimen/fab_margin"
-    android:paddingTop="@dimen/fab_margin"
-    android:paddingRight="@dimen/fab_margin"
-    android:paddingBottom="@dimen/fab_margin">
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <TextView
         android:id="@+id/saveAsTextView"
@@ -13,14 +9,15 @@
         android:layout_height="wrap_content"
         android:layout_row="0"
         android:layout_column="0"
-        android:text="@string/specify_saveas" />
+        android:layout_margin="@dimen/fab_margin" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/saveAsTextInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_row="1"
-        android:layout_column="0">
+        android:layout_column="0"
+        android:layout_margin="@dimen/fab_margin">
 
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"

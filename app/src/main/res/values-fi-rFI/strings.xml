@@ -24,7 +24,7 @@
     <string name="version">v.0.1.1</string>
     <string name="sep">;</string>
     <string name="saveas">Tallenna nimellä</string>
-    <string name="specify_saveas">Tallenna kuva ja merkinnät nimellä</string>
+    <string name="saveimageas">Tallenna kuva ja merkinnät nimellä</string>
     <string name="info">Lisätietoja sovelluksesta</string>
     <string name="saveLocation">Tallennuspaikka</string>
     <string name="back">Takaisin</string>
@@ -40,4 +40,8 @@
     <string name="chooseSave">Valitse tallennustiedosto</string>
     <string name="load">Lataa</string>
     <string name="noSelectedFile">Valitse tiedosto</string>
+    <string name="saveprojectas">Tallenna projekti nimellä</string>
+    <string name="areyousure">Oletko varma, että haluat jatkaa?</string>
+    <string name="unsavedChanges">Sinulla on tallentamattomia tietoja.</string>
+    <string name="cont">Jatka</string>
 </resources>

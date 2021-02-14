@@ -3,13 +3,11 @@ package com.example.constructionmanager;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.Context;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
-import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -22,28 +20,16 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Environment;
-import android.os.SystemClock;
-import android.provider.MediaStore;
 import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.Display;
 import android.view.Gravity;
-import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -54,7 +40,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -64,11 +49,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-
-import uk.co.senab.photoview.PhotoViewAttacher;
-
-import static java.security.AccessController.getContext;
 
 
 public class MainActivity extends AppCompatActivity{
@@ -379,9 +359,37 @@ public class MainActivity extends AppCompatActivity{
                 return true;
             case R.id.loadProject:
                 if(flawInfoList.size()>0){
-                    //Kysy varmistus jatkamisesta
+                        AlertDialog.Builder builder =
+                                new AlertDialog.Builder(MainActivity.this);
+                        final View dialogView = MainActivity.this.getLayoutInflater().inflate(
+                                R.layout.areyousure_fragment, null);
+
+                        builder.setView(dialogView);
+
+                        // lisätään Add flaw painike
+                        builder.setPositiveButton(R.string.cont,
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        if (checkPermission()){
+                                            loadData();
+                                        }
+                                    }
+                                });
+
+                        // lisätään peruuta-painike
+                        builder.setNegativeButton(R.string.button_cancel,
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                    }
+                                });
+                        ;
+
+                    // näytetään dialogi
+                    builder.create().show();
                 }
-                if (checkPermission()){
+                else if (checkPermission()){
                     loadData();
                 }
 
@@ -490,23 +498,6 @@ public class MainActivity extends AppCompatActivity{
     }
 
 
-    //alustaa muuttujat jos on tehty muutoksia ja ladataankin uusi kuva
-    private void initialize(){
-        //asetetaan numerointi oikein
-        counter = 1;
-
-        //tyhjennetään lista
-        if (!flawInfoList.isEmpty()){
-            flawInfoList.clear();
-            System.out.println("new list");
-        }
-
-         //Poistaa FABit näytöltä
-        for(FlawActionButton fab:fabList){
-            layout.removeView(fab);
-        }
-    }
-
     //varmistaa että on asetettu laitteesta lupa lataamiseen/tallentamiseen
     private boolean checkPermission() {
         if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED && check) {
@@ -586,6 +577,8 @@ public class MainActivity extends AppCompatActivity{
 
     //Tallentaa nimellä joko projektin: finalSave=false, tai kuvan ja puutteet: finalSave=true
     public void showSaveAsDialog(final boolean finalSave){
+        //TODO Tälle oma luokka
+
         // luodaan dialogi
         AlertDialog.Builder builder =
                 new AlertDialog.Builder(MainActivity.this);
@@ -599,6 +592,14 @@ public class MainActivity extends AppCompatActivity{
 
         // liitetään textInputit:t
         final TextInputLayout saveTI = (TextInputLayout) saveDialogView.findViewById(R.id.saveAsTextInput);
+        TextView tv = (TextView) saveDialogView.findViewById(R.id.saveAsTextView);
+
+        if(finalSave){
+            tv.setText(R.string.saveimageas);
+        }
+        else{
+            tv.setText(R.string.saveprojectas);
+        }
 
         // lisätään Add flaw painike
         builder.setPositiveButton(R.string.save,
@@ -793,6 +794,24 @@ public class MainActivity extends AppCompatActivity{
     /**
         Pienempiä apufunktioita
      */
+
+
+    //alustaa muuttujat jos on tehty muutoksia ja ladataankin uusi kuva
+    private void initialize(){
+        //asetetaan numerointi oikein
+        counter = 1;
+
+        //tyhjennetään lista
+        if (!flawInfoList.isEmpty()){
+            flawInfoList.clear();
+            System.out.println("new list");
+        }
+
+        //Poistaa FABit näytöltä
+        for(FlawActionButton fab:fabList){
+            layout.removeView(fab);
+        }
+    }
 
     //Luo ensimmäisellä kerralla projektikansion
     private void createAppDir(){

@@ -24,7 +24,7 @@
     <string name="version">v.0.1.1</string>
     <string name="sep">,</string>
     <string name="saveas">Save as</string>
-    <string name="specify_saveas">Save image and flaws as</string>
+    <string name="saveimageas">Save image and flaws as</string>
     <string name="info">More info about app</string>
     <string name="saveLocation">Save location</string>
     <string name="back">Back</string>
@@ -40,4 +40,8 @@
     <string name="chooseSave">Choose savefile</string>
     <string name="load">Load</string>
     <string name="noSelectedFile">Select a file</string>
+    <string name="saveprojectas">Save project as</string>
+    <string name="areyousure">Are you sure you want to continue?</string>
+    <string name="unsavedChanges">You have unsave changes.</string>
+    <string name="cont">Continue</string>
 </resources>
