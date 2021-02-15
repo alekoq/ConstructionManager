@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ClipData;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -64,6 +65,14 @@ public class MainActivity extends AppCompatActivity{
     public String csvs = "/csvs";
     public String projects = "/projects";
 
+    //tähän tallennetaan tallennuksen nimi, kun on ladattu tallennus
+    public String loadedSave = "";
+    MenuItem saveProjectMenuItem;
+    boolean spmiEnabled=false; //pakollinen apumuuttuja koska menu ladataan uudestaan useasti (spmi=SaveProjectMenuItem)
+
+    //tallentamattomia muutoksia
+    boolean unsaved=false;
+
     private boolean blueprintLoaded = false;
     public Uri imageData;
     private boolean isEditable = false;
@@ -77,7 +86,6 @@ public class MainActivity extends AppCompatActivity{
     RelativeLayout layout;
 
     final int RQS_IMAGE1 = 1;
-    final int RQS_DATA = 2;
 
     Bitmap bitmapMaster;
     Canvas canvasMaster;
@@ -92,7 +100,6 @@ public class MainActivity extends AppCompatActivity{
     ArrayList<FlawActionButton> fabList = new ArrayList<>();
 
 
-
     //COLORS FOR FAB
     int[][] states = new int[][] {
             new int[] { android.R.attr.state_enabled}, // enabled
@@ -101,19 +108,12 @@ public class MainActivity extends AppCompatActivity{
             //new int[] { android.R.attr.state_pressed}  // pressed
     };
 
-    int[] colors = new int[] {
-            Color.CYAN,
-            //Color.RED,
-            //Color.GREEN,
-            //Color.RED
-    };
 
-    int[] testcolors = new int[] {
+    int[] colors = new int[] {
             Color.BLACK,
     };
 
-    ColorStateList myList = new ColorStateList(states, colors);
-    ColorStateList testList = new ColorStateList(states, testcolors);
+    ColorStateList colorList = new ColorStateList(states, colors);
     
 
     //Lista puutteista
@@ -166,6 +166,8 @@ public class MainActivity extends AppCompatActivity{
 
         final int displayHeight = displayMetrics.heightPixels;
         final int displayWidth = displayMetrics.widthPixels;
+
+
 
 
         layout.setOnTouchListener(new View.OnTouchListener() {
@@ -274,7 +276,7 @@ public class MainActivity extends AppCompatActivity{
         //Painikkeen asetukset
         fab.setAlpha(0.65f);
         fab.setBackgroundColor(Color.RED);
-        fab.setBackgroundTintList(testList);
+        fab.setBackgroundTintList(colorList);
         //DrawableCompat.setTintList(DrawableCompat.wrap(fab.getBackground()), testList);
         //fab.setBackgroundColor(Color.TRANSPARENT);
         fab.setSize(FloatingActionButton.SIZE_MINI);
@@ -292,6 +294,8 @@ public class MainActivity extends AppCompatActivity{
         //Lisää painike näkymään
         layout.addView(fab);
         counter++;
+        //tallentamattomia muutoksia
+        unsaved=true;
     }
 
 
@@ -319,6 +323,8 @@ public class MainActivity extends AppCompatActivity{
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
+        saveProjectMenuItem = menu.findItem(R.id.saveProject);
+        saveProjectMenuItem.setEnabled(spmiEnabled);
         return true;
     }
 
@@ -340,8 +346,11 @@ public class MainActivity extends AppCompatActivity{
                 }
                 return true;
             case R.id.addImage:
-                //checks if permissions are okay, then opens menu where image can be loaded
-                if(checkPermission()){
+                //Tarkistaa onko tallentamattomia muutoksia, sitten avaa gallerian
+                if(unsaved) {
+                    confirmContinue("image");
+                }
+                else if (checkPermission()){
                     loadImage();
                 }
                 return true;
@@ -354,45 +363,20 @@ public class MainActivity extends AppCompatActivity{
                 }
                 return true;
             case R.id.saveProject:
+                if(checkPermission())
+                    saveProject(loadedSave);
+                return true;
+            case R.id.saveAsProject:
                 if(flawInfoList.size()>0 && checkPermission())
                     showSaveAsDialog(false);
                 return true;
             case R.id.loadProject:
-                if(flawInfoList.size()>0){
-                        AlertDialog.Builder builder =
-                                new AlertDialog.Builder(MainActivity.this);
-                        final View dialogView = MainActivity.this.getLayoutInflater().inflate(
-                                R.layout.areyousure_fragment, null);
-
-                        builder.setView(dialogView);
-
-                        // lisätään Add flaw painike
-                        builder.setPositiveButton(R.string.cont,
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        if (checkPermission()){
-                                            loadData();
-                                        }
-                                    }
-                                });
-
-                        // lisätään peruuta-painike
-                        builder.setNegativeButton(R.string.button_cancel,
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                    }
-                                });
-                        ;
-
-                    // näytetään dialogi
-                    builder.create().show();
+                if(unsaved){
+                    confirmContinue("data");
                 }
                 else if (checkPermission()){
                     loadData();
                 }
-
                 return true;
             case R.id.info:
                 AlertDialog.Builder builder =
@@ -428,9 +412,47 @@ public class MainActivity extends AppCompatActivity{
 
                 // näytetään dialogi
                 builder.create().show();
+
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void confirmContinue(final String functionCall){
+        AlertDialog.Builder builder =
+                new AlertDialog.Builder(MainActivity.this);
+        final View dialogView = MainActivity.this.getLayoutInflater().inflate(
+                R.layout.areyousure_fragment, null);
+
+        builder.setView(dialogView);
+
+        // lisätään Add flaw painike
+        builder.setPositiveButton(R.string.cont,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if(checkPermission()){
+                            if(functionCall=="data"){
+                                loadData();
+                            }
+                            else if(functionCall=="image"){
+                                loadImage();
+                            }
+                        }
+                    }
+                });
+
+        // lisätään peruuta-painike
+        builder.setNegativeButton(R.string.button_cancel,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                });
+        ;
+
+        // näytetään dialogi
+        builder.create().show();
     }
 
 
@@ -488,6 +510,8 @@ public class MainActivity extends AppCompatActivity{
                         //imageRetainingFragment.setImage(bitmapMaster);
 
                         blueprintLoaded = true;
+
+
                     //jos kuva ei löydy
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
@@ -717,6 +741,10 @@ public class MainActivity extends AppCompatActivity{
             out.close();
             fileOut.close();
             toast(getString(R.string.projectSaved));
+
+            //ei tallentamattomia muutoksia
+            unsaved=false;
+
         } catch (IOException i) {
             i.printStackTrace();
             toast(getString(R.string.projectSaveError));
@@ -770,19 +798,27 @@ public class MainActivity extends AppCompatActivity{
 
             blueprintLoaded = true;
 
+            //Asetetaan ladattu tallennuspolku (tai tiedostonimi) ja avataan menuitem saveProject käyttöön
+            loadedSave=fileName;
+            spmiEnabled=true;
+            saveProjectMenuItem.setEnabled(true);
+
+            //Luodaan flawActionButtonit uudestaan
+            for(FlawInfo fi : flawInfoList){
+                RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                lp.leftMargin=fi.getLeftMargin();
+                lp.topMargin=fi.getTopMargin();
+
+                //Luo fabin ominaisuudet
+                newFab(fi, lp);
+            }
+
+            //ei vielä tallentamattomia muutoksia
+            unsaved=false;
+
         } catch (IOException | ClassNotFoundException i) {
             i.printStackTrace();
             toast(getString(R.string.projectLoadError));
-        }
-
-        //Luodaan flawActionButtonit uudestaan
-        for(FlawInfo fi : flawInfoList){
-            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-            lp.leftMargin=fi.getLeftMargin();
-            lp.topMargin=fi.getTopMargin();
-
-            //Luo fabin ominaisuudet
-            newFab(fi, lp);
         }
 
     }
@@ -811,6 +847,11 @@ public class MainActivity extends AppCompatActivity{
         for(FlawActionButton fab:fabList){
             layout.removeView(fab);
         }
+
+        //Nollataan tämä ettei voi tallentaa aiemmin ladatun tiedoston päälle
+        loadedSave="";
+        spmiEnabled=false;
+        saveProjectMenuItem.setEnabled(false);
     }
 
     //Luo ensimmäisellä kerralla projektikansion

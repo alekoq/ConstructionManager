@@ -15,12 +15,17 @@
 
     <item
         android:id="@+id/save"
-        android:title="@string/save"
+        android:title="@string/saveImage"
         app:showAsAction="never">
     </item>
     <item
         android:id="@+id/saveProject"
         android:title="@string/saveProject"
+        app:showAsAction="never">
+    </item>
+    <item
+        android:id="@+id/saveAsProject"
+        android:title="@string/saveAsProject"
         app:showAsAction="never">
     </item>
     <item

@@ -21,7 +21,6 @@
     <string name="title_info_dialog">Puutteen tiedot</string>
     <string name="edit">Muokkaa</string>
     <string name="ret">Palaa</string>
-    <string name="version">v.0.1.1</string>
     <string name="sep">;</string>
     <string name="saveas">Tallenna nimellä</string>
     <string name="saveimageas">Tallenna kuva ja merkinnät nimellä</string>
@@ -33,7 +32,7 @@
     <string name="dir_error">Virhe luotaessa kansiota sovelluksen tiedostoille</string>
     <string name="projectSaved">Projekti tallennettu onnistuneesti</string>
     <string name="projectSaveError">Projektin tallennuksessa ilmeni ongelma</string>
-    <string name="saveProject">Tallenna projekti</string>
+    <string name="saveAsProject">Tallenna projekti nimellä</string>
     <string name="loadProject">Lataa projekti</string>
     <string name="projectLoadError">Projektitiedoston lataamisessa ilmeni ongelma</string>
     <string name="ClassNotFound">Luokkaa ei löytynyt</string>
@@ -44,4 +43,7 @@
     <string name="areyousure">Oletko varma, että haluat jatkaa?</string>
     <string name="unsavedChanges">Sinulla on tallentamattomia tietoja.</string>
     <string name="cont">Jatka</string>
+    <string name="saveProject">Tallenna projekti</string>
+    <string name="saveImage">Tallenna kuva ja puutteet</string>
+    <string name="version">v.0.2.1</string>
 </resources>

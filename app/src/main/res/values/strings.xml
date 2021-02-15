@@ -21,7 +21,7 @@
     <string name="title_info_dialog">Flaw info</string>
     <string name="edit">Edit</string>
     <string name="ret">Return</string>
-    <string name="version">v.0.1.1</string>
+    <string name="version">v.0.2.1</string>
     <string name="sep">,</string>
     <string name="saveas">Save as</string>
     <string name="saveimageas">Save image and flaws as</string>
@@ -33,7 +33,7 @@
     <string name="dir_error">Error when creating new direcotry for app files</string>
     <string name="projectSaved">Project saved succesfully</string>
     <string name="projectSaveError">There was an error saving the project</string>
-    <string name="saveProject">Save Project</string>
+    <string name="saveAsProject">Save Project as</string>
     <string name="loadProject">Load Project</string>
     <string name="projectLoadError">There was an error loading the project file</string>
     <string name="ClassNotFound">Class not found</string>
@@ -44,4 +44,6 @@
     <string name="areyousure">Are you sure you want to continue?</string>
     <string name="unsavedChanges">You have unsave changes.</string>
     <string name="cont">Continue</string>
+    <string name="saveProject">Save project</string>
+    <string name="saveImage">Save image and flaws</string>
 </resources>
