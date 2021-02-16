@@ -99,6 +99,9 @@ public class MainActivity extends AppCompatActivity{
     //Lista kaikista FloatingActionButtoneista
     ArrayList<FlawActionButton> fabList = new ArrayList<>();
 
+    //apumuttuja fabin irti päästämiseen kun siirretään
+    private boolean isLongPressed=false;
+
 
     //COLORS FOR FAB
     int[][] states = new int[][] {
@@ -175,29 +178,19 @@ public class MainActivity extends AppCompatActivity{
             @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-
-
                 //jos kuva lisätty, voidaan lisätä myös merkintöjä
                 if(isEditable){
                     int action = event.getAction();
                     prvX = (int) event.getX();
                     prvY = (int) event.getY();
 
-                    //kuvan reunat
-                    float xl, xr;
-                    xl = (displayWidth - canvasMaster.getWidth())/2; //(displayWidth*dpi - imageView.getWidth()*dpi)/2;
-                    xr = xl + canvasMaster.getWidth(); //xl + imageView.getWidth()*dpi;
-
-                    System.out.println("prvX: " + prvX + "\nprvY: " + prvY + "\nkuvan vasen reuna: " + xl + "\nkuvan oikea reuna: " + xr );
-
                     //tarkistetaan että ollaan kuvan sisällä
                     if(action == MotionEvent.ACTION_DOWN && prvY < displayHeight){
 
-                        //Dialogi jossa täytetään tiedot, ja painamalla Add pirretään ympyrä ja tallennetaan tiedot
+                        //Dialogi jossa täytetään tiedot, ja painamalla Add lisätään fab ja tallennetaan tiedot
                         showFlawFragment();
                     }
                 }
-
                 return true;
             }
         });
@@ -234,6 +227,7 @@ public class MainActivity extends AppCompatActivity{
     public void newFab(FlawInfo fi, RelativeLayout.LayoutParams lp) {
         final FlawActionButton fab = new FlawActionButton(this);
 
+
         //Klikkaaminen näyttää fabin tiedot ja mahdollistaa niiden muokkaamisen
         fab.setOnClickListener(new View.OnClickListener(){
 
@@ -249,6 +243,7 @@ public class MainActivity extends AppCompatActivity{
         fab.setOnLongClickListener(new View.OnLongClickListener(){
             @Override
             public boolean onLongClick(View v) {
+                isLongPressed=true;
                 v.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View view, MotionEvent event) {
@@ -259,17 +254,30 @@ public class MainActivity extends AppCompatActivity{
                                 view.setY(event.getRawY() - imageView.getHeight()/6 ); //Puhelin: (event.getRawY() - imageView.getHeight()/4 - imageView.getHeight()/30)
                                 break;
                             case MotionEvent.ACTION_UP:
+                                // Painalluksen loppuessa asetetaan fabin uuden sijainnin arvo
+                                if(isLongPressed){
+                                    //Määritetään fabin FlawInfo-luokalle xy-koordinaatit niiden selaamista varten
+                                    int[] loc = new int[2];
+                                    view.getLocationOnScreen(loc);
+                                    fab.getFlawInfo().setLeftMargin(loc[0]);
+                                    //menubar ilmeisesti laittaa tämän liian alas. Korjaan kokeilemalla arvoja koska en tiedä mistä saa menun korkeuden
+                                    fab.getFlawInfo().setTopMargin(loc[1]-175);
+                                    //päästettiin irti
+                                    isLongPressed=false;
+                                }
                                 view.setOnTouchListener(null);
                                 break;
                             default:
                                 break;
                         }
+
+
+
                         return true;
                     }
                 });
                 return true;
             }
-
 
         });
 
