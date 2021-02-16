@@ -48,6 +48,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,6 +60,9 @@ public class MainActivity extends AppCompatActivity{
     //private ImageRetainingFragment imageRetainingFragment;
 
     //private static final int GALLERY_REQUEST_CODE = 123;
+
+    // Millä encodella tehdään csv. Jos tämä on false, excel ei tunnista ääkkösiä
+    private boolean ansi=true;
 
     public String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath()+"/CM";
     public String images = "/images";
@@ -688,28 +692,55 @@ public class MainActivity extends AppCompatActivity{
     private void saveFlaws(String fileName) {
 
         String file = dir + csvs + "/" +  fileName + ".csv";
+
+
+        /*
+        TODO Tarkista onko tiedosto olemassa ja kysy käyttäjältä jatkosta
+
+        File f = new File(file);
+        if(f.exists()){
+
+        }
+        */
+
         try {
-            FileOutputStream outputStream = new FileOutputStream(new File(file));
-            //otsikko
-            outputStream.write((getString(R.string.header_number) + getString(R.string.sep)).getBytes());
-            outputStream.write((getString(R.string.apartment) + getString(R.string.sep)).getBytes());
-            outputStream.write((getString(R.string.room) + getString(R.string.sep)).getBytes());
-            outputStream.write((getString(R.string.flaw) + "\n").getBytes());
+            if(ansi){
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file, true),
+                    "windows-1252");
+            writer.append(getString(R.string.header_number) + getString(R.string.sep));
+            writer.append(getString(R.string.apartment) + getString(R.string.sep));
+            writer.append(getString(R.string.room) + getString(R.string.sep));
+            writer.append(getString(R.string.flaw) + "\n");
 
             // flawInfoListasta kaikki objektit
             for (FlawInfo fi : flawInfoList) {
-                outputStream.write((Integer.toString(fi.getCounter()) + getString(R.string.sep)).getBytes());
-                outputStream.write((fi.getApartment() + getString(R.string.sep)).getBytes());
-                outputStream.write((fi.getRoom() + getString(R.string.sep)).getBytes());
-                outputStream.write((fi.getFlaw() + "\n").getBytes());
+                writer.append((fi.getCounter() + getString(R.string.sep)));
+                writer.append(fi.getApartment() + getString(R.string.sep));
+                writer.append((fi.getRoom() + getString(R.string.sep)));
+                writer.append((fi.getFlaw() + "\n"));
             }
 
+            writer.close();
+            }
+
+            else {
+                FileOutputStream outputStream = new FileOutputStream(new File(file));
+                //otsikko
+                outputStream.write((getString(R.string.header_number) + getString(R.string.sep)).getBytes());
+                outputStream.write((getString(R.string.apartment) + getString(R.string.sep)).getBytes());
+                outputStream.write((getString(R.string.room) + getString(R.string.sep)).getBytes());
+                outputStream.write((getString(R.string.flaw) + "\n").getBytes());
+
+                // flawInfoListasta kaikki objektit
+                for (FlawInfo fi : flawInfoList) {
+                    outputStream.write((Integer.toString(fi.getCounter()) + getString(R.string.sep)).getBytes());
+                    outputStream.write((fi.getApartment() + getString(R.string.sep)).getBytes());
+                    outputStream.write((fi.getRoom() + getString(R.string.sep)).getBytes());
+                    outputStream.write((fi.getFlaw() + "\n").getBytes());
+                }
+            }
             // näytetään viesti tallennuksesta
             toast(getString(R.string.message_csv_saved) +"\n" + file);
-
-
-            //Tulostaa polun. Voi etsiä tiedoston koska en pääse emulaattorin tiedostoihin käsiksi muuten kuin File explorerin avulla
-            System.out.println(file);
 
         } catch(Exception e) {
             e.printStackTrace();
