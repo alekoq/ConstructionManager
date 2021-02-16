@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity{
     boolean spmiEnabled=false; //pakollinen apumuuttuja koska menu ladataan uudestaan useasti (spmi=SaveProjectMenuItem)
 
     //tallentamattomia muutoksia
-    boolean unsaved=false;
+    public boolean unsaved=false;
 
     private boolean blueprintLoaded = false;
     public Uri imageData;
@@ -268,6 +268,8 @@ public class MainActivity extends AppCompatActivity{
                                     fab.getFlawInfo().setTopMargin(loc[1]-175);
                                     //päästettiin irti
                                     isLongPressed=false;
+                                    //tallentamattomia muutoksia
+                                    unsaved=true;
                                 }
                                 view.setOnTouchListener(null);
                                 break;

@@ -135,6 +135,8 @@ public class FlawInfoFragment  extends DialogFragment {
                         fi.setRoom(roomInput);
                         fi.setFlaw(flawInput);
 
+                        ma.unsaved=true;
+
                         dismiss();
                     }
                 }
