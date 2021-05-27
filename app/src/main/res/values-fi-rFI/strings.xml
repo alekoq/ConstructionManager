@@ -44,6 +44,10 @@
     <string name="unsavedChanges">Sinulla on tallentamattomia tietoja.</string>
     <string name="cont">Jatka</string>
     <string name="saveProject">Tallenna projekti</string>
-    <string name="saveImage">Tallenna kuva ja puutteet</string>
+    <string name="saveImage">Tallenna tulosteena</string>
     <string name="version">v.0.2.1</string>
+    <string name="closingWarning">Oletko varma että haluat poistua sovelluksesta?</string>
+    <string name="yes">Kyllä</string>
+    <string name="del">Poista</string>
+    <string name="confirmDelete">Oletko varma että haluat poistaa tämän merkinnän?</string>
 </resources>

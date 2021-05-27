@@ -6,15 +6,19 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.google.android.material.textfield.TextInputLayout;
+
+import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
 public class FlawInfoFragment  extends DialogFragment {
 
@@ -27,20 +31,26 @@ public class FlawInfoFragment  extends DialogFragment {
     String roomInput;
     String flawInput;
 
+    ImageButton deleteBtn;
+
+    FlawActionButton fab;
     FlawInfo fi;
 
+    View infoDialogView;
+
     //Mahdollistaa objektin (fabin flawInfo) lähettämisen
-    public static FlawInfoFragment newInstance(int arg, FlawInfo fi) {
+    public static FlawInfoFragment newInstance(int arg, FlawActionButton fab) {
         FlawInfoFragment frag = new FlawInfoFragment();
         Bundle args = new Bundle();
         args.putInt("count", arg);
         frag.setArguments(args);
-        frag.setFlawInfo(fi);
+        frag.setFlawInfo(fab);
         return frag;
     }
 
-    public void setFlawInfo(FlawInfo fi){
-        this.fi = fi;
+    public void setFlawInfo(FlawActionButton fab){
+        this.fab = fab;
+        this.fi = fab.getFlawInfo();
     }
 
     // luodaan Dialogi
@@ -49,7 +59,7 @@ public class FlawInfoFragment  extends DialogFragment {
         // luodaan dialogi
         AlertDialog.Builder builder =
                 new AlertDialog.Builder(getActivity());
-        final View infoDialogView = getActivity().getLayoutInflater().inflate(
+        infoDialogView = getActivity().getLayoutInflater().inflate(
                 R.layout.flawinfo_fragment, null);
         // hae mainactivity jotta sen metodit saadaan käyttöön
         ma = (MainActivity)getActivity();
@@ -64,12 +74,30 @@ public class FlawInfoFragment  extends DialogFragment {
         roomTI = (TextInputLayout) infoDialogView.findViewById(R.id.roomInfoTextInput);
         flawTI = (TextInputLayout) infoDialogView.findViewById(R.id.flawInfoTextInput);
 
+        deleteBtn = (ImageButton)infoDialogView.findViewById(R.id.delete_btn);
+
         /**
          * Näytä oikeat tiedot
          */
         apartmentTI.getEditText().setText(fi.getApartment()); //Bundlella apartmentTI.getEditText().setText(getArguments().getStringArray("flawinfo")[0]
         roomTI.getEditText().setText(fi.getRoom());
         flawTI.getEditText().setText(fi.getFlaw());
+
+        /**
+        Nappien toiminnallisuus
+         */
+        //Delete
+        deleteBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    confirmDelete();
+                }
+                catch(NullPointerException e){
+                    e.printStackTrace();
+                }
+            }
+        });
 
         // lisätään Add flaw painike
         builder.setPositiveButton(R.string.save,
@@ -95,8 +123,10 @@ public class FlawInfoFragment  extends DialogFragment {
                 }
         });
 
+
         //TODO
         //Estä näppäimistön automaattinen ilmestyminen
+        ma.hideKeyboard(infoDialogView);
 
         return builder.create();
     }
@@ -106,12 +136,15 @@ public class FlawInfoFragment  extends DialogFragment {
     @Override
     public void onResume()
     {
-        InputMethodManager imm =
-                (InputMethodManager)apartmentTI.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm.isActive())
-            imm.toggleSoftInput(0, InputMethodManager.RESULT_HIDDEN);
-
         super.onResume();
+        ma.hideKeyboard(infoDialogView);
+        /**
+        apartmentTI.requestFocus();
+        InputMethodManager imm = (InputMethodManager)getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(apartmentTI.getWindowToken(), 0);
+**/
+
     }
 
 
@@ -201,5 +234,23 @@ public class FlawInfoFragment  extends DialogFragment {
         }
 
         return true;
+    }
+
+    private void confirmDelete(){
+        new AlertDialog.Builder(ma)
+                .setIcon(android.R.drawable.ic_menu_delete)
+                //.setTitle("Closing Activity")
+                .setMessage(R.string.confirmDelete)
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ma.deleteFAB(fab);
+                        dismiss();
+                    }
+
+                })
+                .setNegativeButton(R.string.ret, null)
+                .show();
     }
 }

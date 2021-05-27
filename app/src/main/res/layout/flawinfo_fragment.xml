@@ -80,4 +80,16 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
+    <ImageButton
+        android:id="@+id/delete_btn"
+        style="@android:style/Widget.Holo.ImageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:focusable="true"
+        android:outlineProvider="paddedBounds"
+        android:padding="@dimen/small_margin"
+        android:src="@android:drawable/ic_menu_delete" />
+
+
 </GridLayout>

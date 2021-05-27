@@ -2,9 +2,11 @@ package com.example.constructionmanager;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -36,7 +38,11 @@ import android.view.View;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -105,6 +111,9 @@ public class MainActivity extends AppCompatActivity{
 
     //apumuttuja fabin irti päästämiseen kun siirretään
     private boolean isLongPressed=false;
+    //apumuuttuja poista valikon näkymiseen
+    private boolean showDelete=false;
+
 
 
     //COLORS FOR FAB
@@ -117,7 +126,8 @@ public class MainActivity extends AppCompatActivity{
 
 
     int[] colors = new int[] {
-            Color.BLACK,
+            Color.BLACK
+            //Korjaus valmis esim. Color.LTGRAY
     };
 
     ColorStateList colorList = new ColorStateList(states, colors);
@@ -125,6 +135,12 @@ public class MainActivity extends AppCompatActivity{
 
     //Lista puutteista
     List<FlawInfo> flawInfoList = new ArrayList<FlawInfo>();
+
+    PopupWindow popUp;
+    ImageButton delete;
+
+    // tallentaa viimeisimmän kosketuksen koordinaatit. Hyödynnetään popUpWindowissa
+    private float[] lastTouchDownXY = new float[2];
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -138,12 +154,6 @@ public class MainActivity extends AppCompatActivity{
         icon = getResources().getDrawable(R.drawable.ic_baseline_add_24);
 
         layout = findViewById(R.id.imageRelativeLayout);
-
-        //kuvan koon hallintaan
-        final float dpi = getResources().getDisplayMetrics().density;
-        //lataa kuvan takaisin kun laitetta käännetään. EI TOIMINNASSA
-        //initializeImageRetainingFragment();
-        //tryLoadImage();
 
         isEditable = imageView.getDrawable() != null;
 
@@ -166,16 +176,13 @@ public class MainActivity extends AppCompatActivity{
         //Luo sovellukselle oman kansion jos sitä ei jo ole
         createAppDir();
 
+        //poistamiseen popUp
+        popUp = new PopupWindow(this);
+
 
         //näytön koko
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-
-        final int displayHeight = displayMetrics.heightPixels;
-        final int displayWidth = displayMetrics.widthPixels;
-
-
-
 
         layout.setOnTouchListener(new View.OnTouchListener() {
 
@@ -189,7 +196,7 @@ public class MainActivity extends AppCompatActivity{
                     prvY = (int) event.getY();
 
                     //tarkistetaan että ollaan kuvan sisällä
-                    if(action == MotionEvent.ACTION_DOWN && prvY < displayHeight){
+                    if(action == MotionEvent.ACTION_DOWN){
 
                         //Dialogi jossa täytetään tiedot, ja painamalla Add lisätään fab ja tallennetaan tiedot
                         showFlawFragment();
@@ -198,6 +205,7 @@ public class MainActivity extends AppCompatActivity{
                 return true;
             }
         });
+
     }
 
     //method to convert your text to image
@@ -238,7 +246,7 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public void onClick(View v){
                 System.out.println(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath());
-                showInfoFragment(fab.getFlawInfo());
+                showInfoFragment(fab);
             }
         });
 
@@ -248,11 +256,35 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public boolean onLongClick(View v) {
                 isLongPressed=true;
+
+                /*
+                //Avaa poistovalikko
+                showDelete = true;
+
+                // retrieve the stored coordinates
+                int x = (int)fab.getX();
+                int y = (int)fab.getY();
+                // create the popup window
+                int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+                int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+                deletePopup dp = new deletePopup(imageView, x,y,width,height);
+*/
+
+                
+
                 v.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View view, MotionEvent event) {
                         switch (event.getActionMasked()) {
                             case MotionEvent.ACTION_MOVE:
+                                //Poista merkintä häviää
+                                if(showDelete){
+                                    showDelete = false;
+                                    //popup.dismiss();
+                                }
+
+
+
                                 //Arvot saatu puhtaasti testaamalla
                                 view.setX(event.getRawX() - imageView.getWidth()/50); //Puhelin : (event.getRawX() - imageView.getWidth()/30)
                                 view.setY(event.getRawY() - imageView.getHeight()/6 ); //Puhelin: (event.getRawY() - imageView.getHeight()/4 - imageView.getHeight()/30)
@@ -268,6 +300,7 @@ public class MainActivity extends AppCompatActivity{
                                     fab.getFlawInfo().setTopMargin(loc[1]-175);
                                     //päästettiin irti
                                     isLongPressed=false;
+
                                     //tallentamattomia muutoksia
                                     unsaved=true;
                                 }
@@ -277,8 +310,6 @@ public class MainActivity extends AppCompatActivity{
                                 break;
                         }
 
-
-
                         return true;
                     }
                 });
@@ -286,6 +317,12 @@ public class MainActivity extends AppCompatActivity{
             }
 
         });
+
+        //Jos puutteen tietojen counter on suurempi kuin yleiscounter, päivitetään yleiscounter
+        // Tilanne voi olla tämä jos ladataan vanha projekti josta on poistettu puutteita
+        if(fi.getCounter() > counter){
+            counter = fi.getCounter();
+        }
 
         //Painikkeen asetukset
         fab.setAlpha(0.65f);
@@ -315,19 +352,25 @@ public class MainActivity extends AppCompatActivity{
 
     //funktio avaa flawFragmentin kun lisätään uutta Puutetta
     public void showFlawFragment(){
-
         //Luo uuden flawFragmentin ja näyttää sen
         AddFlawFragment flawFragment = new AddFlawFragment();
         flawFragment.show(getSupportFragmentManager(), "flawFragment");
+
     }
 
     //funktio avaa flawinfoFragmentin kun tarkastellaan vanhaa Puutetta
-    public void showInfoFragment(FlawInfo fi){
+    public void showInfoFragment(FlawActionButton fab){
 
         //Luo uuden infoFlawFragmentin ja lähettää sille fabin flawInfon argumenttina
-        FlawInfoFragment infoFragment = FlawInfoFragment.newInstance(0, fi);
+        FlawInfoFragment infoFragment = FlawInfoFragment.newInstance(0, fab);
 
         infoFragment.show(getSupportFragmentManager(), "infoFragment");
+    }
+
+    //fabin poistamiseen
+    public void deleteFAB(FlawActionButton fab){
+        flawInfoList.remove(fab.getFlawInfo());
+        layout.removeView(fab);
     }
 
 
@@ -706,6 +749,7 @@ public class MainActivity extends AppCompatActivity{
         */
 
         try {
+            //Kaksi eri tallennusformaattia. Ansi mahdollistaa ääkköset (jos ei ansi, excel ei ainakaan tunnista ääkkösiä)
             if(ansi){
             OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file, true),
                     "windows-1252");
@@ -844,6 +888,9 @@ public class MainActivity extends AppCompatActivity{
             spmiEnabled=true;
             saveProjectMenuItem.setEnabled(true);
 
+            /**
+             * TODO Numeorinti menee ladatessa "väärin" jos on poistettu puutteita
+             */
             //Luodaan flawActionButtonit uudestaan
             for(FlawInfo fi : flawInfoList){
                 RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -920,6 +967,34 @@ public class MainActivity extends AppCompatActivity{
         message.setGravity(Gravity.CENTER, message.getXOffset() / 2,
                 message.getYOffset() / 4);
         message.show();
+    }
+
+    //Näppäimistön piilottamiseen
+    public void hideKeyboard(View view) {
+        InputMethodManager mInputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        mInputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+    /**
+     ****************************************** Sovelluksesta poistuminen ************************************************
+     */
+
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                //.setTitle("Closing Activity")
+                .setMessage(R.string.closingWarning)
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+
+                })
+                .setNegativeButton(R.string.ret, null)
+                .show();
     }
 
 }

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerHorizontal="false"
+    android:layout_gravity="center_horizontal"
+    android:background="@drawable/border"
+    android:fadingEdge="horizontal|vertical"
+    android:orientation="vertical"
+    android:padding="5dip">
+
+    <ImageButton
+        android:id="@+id/delete"
+        style="@android:style/Widget.Holo.ImageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1"
+        android:focusable="true"
+        android:outlineProvider="paddedBounds"
+        android:padding="@dimen/small_margin"
+        android:src="@android:drawable/ic_menu_delete" />
+
+    <TextView
+        android:id="@+id/deleteTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_row="0"
+        android:layout_column="1"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="@dimen/fab_margin"
+        android:layout_marginRight="@dimen/fab_margin"
+        android:text="@string/del"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+</GridLayout>
