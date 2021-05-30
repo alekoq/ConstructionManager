@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -83,6 +84,16 @@ public class FlawInfoFragment  extends DialogFragment {
         roomTI.getEditText().setText(fi.getRoom());
         flawTI.getEditText().setText(fi.getFlaw());
 
+        //Kun painetaan muualta kuin tekstikentistä laitetaan näppäimistö piiloon
+        infoDialogView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //infoDialogView.requestFocus();
+
+                hideKeyboard(infoDialogView);
+            }
+        });
+
         /**
         Nappien toiminnallisuus
          */
@@ -123,29 +134,25 @@ public class FlawInfoFragment  extends DialogFragment {
                 }
         });
 
+        flawTI.getEditText().setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
 
-        //TODO
-        //Estä näppäimistön automaattinen ilmestyminen
-        ma.hideKeyboard(infoDialogView);
+                if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+                        (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                    // Perform action on key press
+                    if(confirmInput()) {
+                        updateFab();
+                    }
+                    return true;
+                }
+                return false;
+            }
+        });
 
         return builder.create();
     }
 
-
-    // TODO Näppiksen piilottamiseen. EI TOIMI
-    @Override
-    public void onResume()
-    {
-        super.onResume();
-        ma.hideKeyboard(infoDialogView);
-        /**
-        apartmentTI.requestFocus();
-        InputMethodManager imm = (InputMethodManager)getSystemService(
-                Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(apartmentTI.getWindowToken(), 0);
-**/
-
-    }
 
 
     //Override tämä jotta voidaan estää dialogin sulkeutuminen jos kaikki tiedot ei ole täytetty
@@ -163,14 +170,7 @@ public class FlawInfoFragment  extends DialogFragment {
 
                     //Jos kaikissa edelleen tekstiä päivitetään tiedot
                     if(confirmInput()) {
-                        // TODO Päivitä vain ne kentät joita on päivitetty
-                        fi.setApartment(apartmentInput);
-                        fi.setRoom(roomInput);
-                        fi.setFlaw(flawInput);
-
-                        ma.unsaved=true;
-
-                        dismiss();
+                        updateFab();
                     }
                 }
             });
@@ -189,7 +189,17 @@ public class FlawInfoFragment  extends DialogFragment {
                 }
             });
         }
+    }
 
+    private void updateFab(){
+        // TODO Päivitä vain ne kentät joita on päivitetty
+        fi.setApartment(apartmentInput);
+        fi.setRoom(roomInput);
+        fi.setFlaw(flawInput);
+
+        ma.unsaved=true;
+
+        dismiss();
     }
 
         public boolean validateApartment() {
@@ -245,12 +255,23 @@ public class FlawInfoFragment  extends DialogFragment {
                 {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        //jos poistetaan uusin merkintä otetaan counteria taaksepäin
+                        ma.updateCounterValue(fab.flawinfo.getCounter());
+                        //poistetaan merkintä
                         ma.deleteFAB(fab);
+                        //Suljetaan Fragmentti
                         dismiss();
                     }
 
                 })
                 .setNegativeButton(R.string.ret, null)
                 .show();
+    }
+
+    //TODO
+    //Voiko kaikki fragmentit käyttää yhdestä luokasta?
+    private void hideKeyboard(View view){
+        InputMethodManager mInputMethodManager = (InputMethodManager) ma.getSystemService(Context.INPUT_METHOD_SERVICE);
+        mInputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }

@@ -3,12 +3,17 @@
     android:id="@+id/addFlawGridLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+
     android:columnCount="1"
     android:paddingLeft="@dimen/fab_margin"
     android:paddingTop="@dimen/fab_margin"
     android:paddingRight="@dimen/fab_margin"
     android:paddingBottom="@dimen/fab_margin"
-    android:useDefaultMargins="true">
+    android:useDefaultMargins="true"
+    android:windowSoftInputMode="stateHidden">
 
     <TextView
         android:id="@+id/apartmentTextView"
@@ -21,11 +26,16 @@
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/apartmentTextInput"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        >
+
 
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:imeOptions="actionNext"
+             />
     </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
@@ -42,8 +52,11 @@
         android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/roomTextInputEditText"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:imeOptions="actionNext"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
@@ -61,7 +74,8 @@
 
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:imeOptions="actionDone"/>
 
     </com.google.android.material.textfield.TextInputLayout>
 

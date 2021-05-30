@@ -888,9 +888,6 @@ public class MainActivity extends AppCompatActivity{
             spmiEnabled=true;
             saveProjectMenuItem.setEnabled(true);
 
-            /**
-             * TODO Numeorinti menee ladatessa "väärin" jos on poistettu puutteita
-             */
             //Luodaan flawActionButtonit uudestaan
             for(FlawInfo fi : flawInfoList){
                 RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -973,6 +970,14 @@ public class MainActivity extends AppCompatActivity{
     public void hideKeyboard(View view) {
         InputMethodManager mInputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         mInputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+    //Poistamisen yhteydessä päivitetään counter, jos poistetaan viimeisin merkintä.
+    //Eli jos mennään merkinnässä 5, poistetaan se merkintä, ei jatketa 6:sta vaan 5:sta
+    public void updateCounterValue(int fabCounter){
+        if(fabCounter == counter-1){
+            counter--;
+        }
     }
 
     /**

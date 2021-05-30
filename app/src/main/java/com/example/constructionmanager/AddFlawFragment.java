@@ -2,17 +2,21 @@ package com.example.constructionmanager;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 
 import com.google.android.material.textfield.TextInputEditText;
@@ -45,6 +49,16 @@ public class AddFlawFragment extends DialogFragment {
         // asetetaan dialogin viesti
         builder.setTitle(R.string.title_flaw_dialog);
 
+        //Kun painetaan muualta kuin tekstikentistä laitetaan näppäimistö piiloon
+        flawDialogView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Ei tarvita?
+                //flawDialogView.requestFocus();
+
+                hideKeyboard(flawDialogView);
+            }
+        });
 
 
         // liitetään textInputit:t
@@ -70,6 +84,22 @@ public class AddFlawFragment extends DialogFragment {
                     }
                 });
 
+        flawTI.getEditText().setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+
+                if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+                        (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                    // Perform action on key press
+                    if(confirmInput()) {
+                        addFab();
+                    }
+                    return true;
+                }
+                return false;
+            }
+        });
+
         return builder.create();
     }
 
@@ -89,18 +119,22 @@ public class AddFlawFragment extends DialogFragment {
                 {
                     // Lisää tiedot listaan ja suljetaan dialogi jos kaikki tiedot on täytetty
                     if(confirmInput()) {
-                        //if everything is filled save information
-                        FlawInfo flawInfo = new FlawInfo(apartmentInput, roomInput, flawInput, ma.counter);
-
-                        //Luo uuden fabin joka sisältää myös flawInfon
-                        ma.newFab(flawInfo);
-
-                        //sulje dialogi
-                        dismiss();
+                        addFab();
                     }
                 }
             });
         }
+    }
+
+    private void addFab(){
+        //if everything is filled save information
+        FlawInfo flawInfo = new FlawInfo(apartmentInput, roomInput, flawInput, ma.counter);
+
+        //Luo uuden fabin joka sisältää myös flawInfon
+        ma.newFab(flawInfo);
+
+        //sulje dialogi
+        dismiss();
     }
 
 
@@ -148,4 +182,8 @@ public class AddFlawFragment extends DialogFragment {
         return true;
     }
 
+    public void hideKeyboard(View view){
+        InputMethodManager mInputMethodManager = (InputMethodManager) ma.getSystemService(Context.INPUT_METHOD_SERVICE);
+        mInputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
 }
