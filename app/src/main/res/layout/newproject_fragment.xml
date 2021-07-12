@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/newproject_gridlayout"
     android:layout_width="match_parent"
@@ -21,7 +21,6 @@
         android:id="@+id/addImage_txt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@id/gallery_imgBtn"
         android:layout_gravity="bottom|start|center_horizontal|fill_horizontal"
         android:layout_marginStart="@dimen/big_margin"
         android:layout_marginTop="@dimen/big_margin"
@@ -34,6 +33,7 @@
         android:id="@+id/gallery_imgBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_column="0"
         android:layout_gravity="bottom|start"
         android:layout_marginStart="@dimen/big_margin"
         android:layout_marginEnd="@dimen/big_margin"
@@ -45,8 +45,8 @@
         android:id="@+id/document_imgBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@id/gallery_imgBtn"
-        android:layout_gravity="bottom|fill_horizontal|end"
+        android:layout_column="1"
+        android:layout_gravity="bottom|end"
         android:layout_marginStart="@dimen/big_margin"
         android:layout_marginEnd="@dimen/big_margin"
         android:contentDescription="@string/document"
@@ -70,4 +70,4 @@
         android:layout_marginStart="@dimen/big_margin"
         android:layout_marginEnd="@dimen/big_margin"
         android:text="@string/document" />
-</RelativeLayout>
+</GridLayout>

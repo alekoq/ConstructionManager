@@ -41,9 +41,8 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ImageButton;
+import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -61,10 +60,12 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-//import com.sun.pdfview.PDFFile;
-//import com.sun.pdfview.PDFPage;
+import org.apache.pdfbox.pdmodel.*;
+import org.apache.pdfbox.rendering.*;
+import java.io.*;
 
-
+//import javax.imageio.*;
+//import java.awt.image.*;
 
 public class MainActivity extends AppCompatActivity{
 
@@ -115,6 +116,9 @@ public class MainActivity extends AppCompatActivity{
     Paint paintText;
     int centerText = 45;
 
+    //NewProjectFAB aloitusnäyttöön
+    Button newProjectBtn;
+
     //Lista kaikista FloatingActionButtoneista
     ArrayList<FlawActionButton> fabList = new ArrayList<>();
 
@@ -162,6 +166,8 @@ public class MainActivity extends AppCompatActivity{
         icon = getResources().getDrawable(R.drawable.ic_baseline_add_24);
 
         layout = findViewById(R.id.imageRelativeLayout);
+        //Määrittää aloitusnäytön painikkeen
+        setNewProjectBtn();
 
         isEditable = imageView.getDrawable() != null;
 
@@ -169,7 +175,6 @@ public class MainActivity extends AppCompatActivity{
         paintDraw.setStyle(Paint.Style.STROKE);
         paintDraw.setColor(Color.RED);
         paintDraw.setStrokeWidth(5);
-
 
         paintText = new Paint();
         paintText.setStyle(Paint.Style.FILL);
@@ -188,7 +193,7 @@ public class MainActivity extends AppCompatActivity{
         popUp = new PopupWindow(this);
 
 
-        //näytön koko
+        //näytön koko (Ei tarvita tällä hetkellä?)
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 
@@ -215,6 +220,19 @@ public class MainActivity extends AppCompatActivity{
         });
 
     }
+
+    private void setNewProjectBtn(){
+        newProjectBtn = findViewById(R.id.newProject_btn);
+
+        newProjectBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NewProjectFragment npf = new NewProjectFragment();
+                npf.show(getSupportFragmentManager(), "newProject");
+            }
+        });
+    }
+
 
     //method to convert your text to image
     public Bitmap textAsBitmap(String text, float textSize, int textColor) {
@@ -544,21 +562,26 @@ public class MainActivity extends AppCompatActivity{
         if (resultCode == RESULT_OK  && data != null) {
 
             if (requestCode == RQS_IMAGE1) {
+                    //Kuvan data välimuuttujaan
                     fileData = data.getData();
-                    //Asettaa valitun kuvan bitmappiin/canvakselle
-                    configBitmap();
+                    //configBitmap(); Asettaa valitun kuvan bitmappiin/canvakselle
+                    //Projektin luominen vasta kun "Luodaan" se NewProjectFramentissa
 
             }
             else if(requestCode == PICKFILE_RESULT_CODE){
                 fileData = data.getData();
-                pdfToImage();
+
+                //pdfToImage();
                 //TODO PDF to image
             }
         }
     }
 
     //Asettaa valitun kuvan bitmappiin/canvakselle
-    private void configBitmap(){
+    public void configBitmap(){
+        //Otetaan aloituspainike pois käytöstä ja näkyvistä
+        newProjectBtn.setVisibility(View.GONE);
+
         Bitmap tempBitmap;
 
         try {
@@ -600,43 +623,20 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
+    /**
     private void pdfToImage(){
-        byte[] bytes;
-        try {
+        PDDocument pd = PDDocument.load (new File (in));
+        PDFRenderer pr = new PDFRenderer (pd);
+        BufferedImage bi = pr.renderImageWithDPI(0, 300);
 
-            File file = new File(fileData.getPath());
-            FileInputStream is = new FileInputStream(file);
+        ImageIO.write (bi, "JPEG", new File (out));
 
-            // Get the size of the file
-            long length = file.length();
-            bytes = new byte[(int) length];
-            int offset = 0;
-            int numRead = 0;
-            while (offset < bytes.length && (numRead=is.read(bytes, offset, bytes.length-offset)) >= 0) {
-                offset += numRead;
-            }
-
-/**
-            ByteBuffer buffer = ByteBuffer.wrap(bytes);
-            String data = Base64.encodeToString(bytes, Base64.DEFAULT);
-            PDFFile pdf_file = new PDFFile(buffer);
-            PDFPage page = pdf_file.getPage(2);
-
-            RectF rect = new RectF(0, 0, (int) page.getBBox().width(),
-                    (int) page.getBBox().height());
-            //  Bitmap bufferedImage = Bitmap.createBitmap((int)rect.width(), (int)rect.height(),
-            //        Bitmap.Config.ARGB_8888);
-
-            Bitmap image = page.getImage((int)rect.width(), (int)rect.height(), rect);
-            FileOutputStream os = new FileOutputStream(this.getFilesDir().getAbsolutePath()+"/pdf.jpg");
-            image.compress(Bitmap.CompressFormat.JPEG, 80, os);
-*/
-            //((ImageView) findViewById(R.id.testView)).setImageBitmap(image);
-
-        } catch (Exception e) {
+    } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
+     */
 
     //varmistaa että on asetettu laitteesta lupa lataamiseen/tallentamiseen
     private boolean checkPermission() {
