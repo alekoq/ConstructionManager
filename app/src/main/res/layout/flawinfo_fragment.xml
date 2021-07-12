@@ -4,14 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 
-    android:focusable="true"
-    android:focusableInTouchMode="true"
-
     android:columnCount="1"
+    android:focusable="true"
+
+    android:focusableInTouchMode="true"
     android:paddingLeft="@dimen/fab_margin"
     android:paddingTop="@dimen/fab_margin"
     android:paddingRight="@dimen/fab_margin"
     android:paddingBottom="@dimen/fab_margin"
+    android:scrollbars="vertical"
     android:useDefaultMargins="true"
     android:windowSoftInputMode="stateHidden">
 
@@ -37,8 +38,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:singleLine="true"
-            android:imeOptions="actionNext"/>
+            android:imeOptions="actionNext"
+            android:singleLine="true" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -62,8 +63,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:singleLine="true"
-            android:imeOptions="actionNext"/>
+            android:imeOptions="actionNext"
+            android:singleLine="true" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -86,7 +87,7 @@
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:imeOptions="actionDone"/>
+            android:imeOptions="actionDone" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -95,7 +96,6 @@
         style="@android:style/Widget.Holo.ImageButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
         android:focusable="true"
         android:outlineProvider="paddedBounds"
         android:padding="@dimen/small_margin"

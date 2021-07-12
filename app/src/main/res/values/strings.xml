@@ -50,4 +50,9 @@
     <string name="yes">Yes</string>
     <string name="del">Delete</string>
     <string name="confirmDelete">Are you sure you want to delete this item?</string>
+    <string name="newProject">New project</string>
+    <string name="gallery">Gallery</string>
+    <string name="document">Document</string>
+    <string name="createNewProject">Create a new project</string>
+    <string name="create">Create</string>
 </resources>

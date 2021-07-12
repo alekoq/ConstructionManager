@@ -8,8 +8,8 @@
     </item>
 
     <item
-        android:id="@+id/addImage"
-        android:title="@string/addImage"
+        android:id="@+id/newProject"
+        android:title="@string/newProject"
         app:showAsAction="never">
     </item>
 

@@ -2,4 +2,5 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="small_margin">8dp</dimen>
     <dimen name="alpha_value">10</dimen>
+    <dimen name="big_margin">32dp</dimen>
 </resources>

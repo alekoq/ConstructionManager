@@ -17,6 +17,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
+import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -31,6 +32,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 
 import android.os.Environment;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -55,8 +57,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+//import com.sun.pdfview.PDFFile;
+//import com.sun.pdfview.PDFPage;
+
 
 
 public class MainActivity extends AppCompatActivity{
@@ -84,7 +91,7 @@ public class MainActivity extends AppCompatActivity{
     public boolean unsaved=false;
 
     private boolean blueprintLoaded = false;
-    public Uri imageData;
+    public Uri fileData;
     private boolean isEditable = false;
     private boolean check = true;
 
@@ -96,6 +103,8 @@ public class MainActivity extends AppCompatActivity{
     RelativeLayout layout;
 
     final int RQS_IMAGE1 = 1;
+    private static final int CHOOSE_FILE_REQUESTCODE = 8777;
+    private static final int PICKFILE_RESULT_CODE = 8778;
 
     Bitmap bitmapMaster;
     Canvas canvasMaster;
@@ -137,7 +146,6 @@ public class MainActivity extends AppCompatActivity{
     List<FlawInfo> flawInfoList = new ArrayList<FlawInfo>();
 
     PopupWindow popUp;
-    ImageButton delete;
 
     // tallentaa viimeisimmän kosketuksen koordinaatit. Hyödynnetään popUpWindowissa
     private float[] lastTouchDownXY = new float[2];
@@ -402,14 +410,9 @@ public class MainActivity extends AppCompatActivity{
                     invalidateOptionsMenu();
                 }
                 return true;
-            case R.id.addImage:
-                //Tarkistaa onko tallentamattomia muutoksia, sitten avaa gallerian
-                if(unsaved) {
-                    confirmContinue("image");
-                }
-                else if (checkPermission()){
-                    loadImage();
-                }
+            case R.id.newProject:
+                NewProjectFragment npf = new NewProjectFragment();
+                npf.show(getSupportFragmentManager(), "newProject");
                 return true;
             case R.id.save:
                 if (blueprintLoaded) {
@@ -512,6 +515,15 @@ public class MainActivity extends AppCompatActivity{
         builder.create().show();
     }
 
+    //Tarkistaa onko tallentamattomia muutoksia, sitten avaa gallerian
+    public void openGallery(){
+        if(unsaved) {
+            confirmContinue("image");
+        }
+        else if (checkPermission()){
+            loadImage();
+        }
+    }
 
 
     //Ikonin väärin muutos (kun valittuna) vaatii tämän
@@ -528,56 +540,103 @@ public class MainActivity extends AppCompatActivity{
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Bitmap tempBitmap;
 
         if (resultCode == RESULT_OK  && data != null) {
 
             if (requestCode == RQS_IMAGE1) {
-                    imageData = data.getData();
+                    fileData = data.getData();
+                    //Asettaa valitun kuvan bitmappiin/canvakselle
+                    configBitmap();
 
-                    try {
-
-                        tempBitmap = BitmapFactory.decodeStream(
-                                getContentResolver().openInputStream(imageData));
-
-                        Bitmap.Config config;
-                        if (tempBitmap.getConfig() != null) {
-                            config = tempBitmap.getConfig();
-                        } else {
-                            config = Bitmap.Config.ARGB_8888;
-                        }
-
-
-                        bitmapMaster = Bitmap.createBitmap(
-                                tempBitmap.getWidth(),
-                                tempBitmap.getHeight(),
-                                config);
-
-
-
-                        canvasMaster = new Canvas(bitmapMaster);
-                        canvasMaster.drawBitmap(tempBitmap, 0, 0, null);
-
-                        imageView.setImageBitmap(bitmapMaster);
-
-                        //alustetaan tietyt muuttujat
-                        initialize();
-
-                        //Tarvitaan kuvan säilyttämiseen kun laitetta käännetään. EI TOIMINNASSA
-                        //imageRetainingFragment.setImage(bitmapMaster);
-
-                        blueprintLoaded = true;
-
-
-                    //jos kuva ei löydy
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
             }
-
+            else if(requestCode == PICKFILE_RESULT_CODE){
+                fileData = data.getData();
+                pdfToImage();
+                //TODO PDF to image
+            }
         }
     }
 
+    //Asettaa valitun kuvan bitmappiin/canvakselle
+    private void configBitmap(){
+        Bitmap tempBitmap;
+
+        try {
+            tempBitmap = BitmapFactory.decodeStream(
+                    getContentResolver().openInputStream(fileData));
+
+            Bitmap.Config config;
+            if (tempBitmap.getConfig() != null) {
+                config = tempBitmap.getConfig();
+            } else {
+                config = Bitmap.Config.ARGB_8888;
+            }
+
+
+            bitmapMaster = Bitmap.createBitmap(
+                    tempBitmap.getWidth(),
+                    tempBitmap.getHeight(),
+                    config);
+
+
+
+            canvasMaster = new Canvas(bitmapMaster);
+            canvasMaster.drawBitmap(tempBitmap, 0, 0, null);
+
+            imageView.setImageBitmap(bitmapMaster);
+
+            //alustetaan tietyt muuttujat
+            initialize();
+
+            //Tarvitaan kuvan säilyttämiseen kun laitetta käännetään. EI TOIMINNASSA
+            //imageRetainingFragment.setImage(bitmapMaster);
+
+            blueprintLoaded = true;
+
+
+            //jos kuva ei löydy
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void pdfToImage(){
+        byte[] bytes;
+        try {
+
+            File file = new File(fileData.getPath());
+            FileInputStream is = new FileInputStream(file);
+
+            // Get the size of the file
+            long length = file.length();
+            bytes = new byte[(int) length];
+            int offset = 0;
+            int numRead = 0;
+            while (offset < bytes.length && (numRead=is.read(bytes, offset, bytes.length-offset)) >= 0) {
+                offset += numRead;
+            }
+
+/**
+            ByteBuffer buffer = ByteBuffer.wrap(bytes);
+            String data = Base64.encodeToString(bytes, Base64.DEFAULT);
+            PDFFile pdf_file = new PDFFile(buffer);
+            PDFPage page = pdf_file.getPage(2);
+
+            RectF rect = new RectF(0, 0, (int) page.getBBox().width(),
+                    (int) page.getBBox().height());
+            //  Bitmap bufferedImage = Bitmap.createBitmap((int)rect.width(), (int)rect.height(),
+            //        Bitmap.Config.ARGB_8888);
+
+            Bitmap image = page.getImage((int)rect.width(), (int)rect.height(), rect);
+            FileOutputStream os = new FileOutputStream(this.getFilesDir().getAbsolutePath()+"/pdf.jpg");
+            image.compress(Bitmap.CompressFormat.JPEG, 80, os);
+*/
+            //((ImageView) findViewById(R.id.testView)).setImageBitmap(image);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     //varmistaa että on asetettu laitteesta lupa lataamiseen/tallentamiseen
     private boolean checkPermission() {
@@ -647,6 +706,13 @@ public class MainActivity extends AppCompatActivity{
             Intent intent = new Intent(Intent.ACTION_PICK,
                     android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             startActivityForResult(intent, RQS_IMAGE1);
+    }
+
+    public void loadPDF(){
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        intent.setType("application/pdf");
+        startActivityForResult(intent, PICKFILE_RESULT_CODE);
     }
 
     //Luo uuden LoadProjectFragmentin jossa voi valita ladattavan projektin. Kutsuu tiedostonimen perusteella loadProject()

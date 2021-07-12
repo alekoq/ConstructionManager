@@ -50,4 +50,9 @@
     <string name="yes">Kyllä</string>
     <string name="del">Poista</string>
     <string name="confirmDelete">Oletko varma että haluat poistaa tämän merkinnän?</string>
+    <string name="newProject">Uusi projekti</string>
+    <string name="document">Tiedosto</string>
+    <string name="gallery">Galleria</string>
+    <string name="createNewProject">Luo uusi projekti</string>
+    <string name="create">Luo</string>
 </resources>
