@@ -55,4 +55,8 @@
     <string name="document">Document</string>
     <string name="createNewProject">Create a new project</string>
     <string name="create">Create</string>
+    <string name="fileNotFound">File not found</string>
+    <string name="selectPage">Select page number</string>
+    <string name="pdf">PDF</string>
+    <string name="pdfFail">PDF rendering failed</string>
 </resources>

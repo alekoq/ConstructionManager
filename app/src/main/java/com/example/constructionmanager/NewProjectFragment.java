@@ -22,7 +22,8 @@ public class NewProjectFragment extends DialogFragment {
 
     MainActivity ma;
     ImageButton galleryBtn, documentBtn;
-    Boolean createBtnEnabled = false;
+    Button positiveButton;
+    Boolean createFromPdf = false;
 
     @Override
     public Dialog onCreateDialog(@Nullable Bundle bundle) {
@@ -45,9 +46,15 @@ public class NewProjectFragment extends DialogFragment {
         galleryBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ma.openGallery();
-                //'Luo' painike käyttöön. HUOM tämä ei takaa että kuva on valittu
-                createBtnEnabled = true;
+                ma.createFromPdf = false;
+                //Lataa galleriasta pohjapiirroksen
+                Intent intent = new Intent(Intent.ACTION_PICK,
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                ma.onActivityResult.launch(intent);
+
+                //'Luo' painike käyttöön
+                createFromPdf = false;
+                positiveButton.setEnabled(true);
             }
         });
 
@@ -55,9 +62,15 @@ public class NewProjectFragment extends DialogFragment {
 
             @Override
             public void onClick(View v) {
-                ma.loadPDF();
-                //'Luo' painike käyttöön. HUOM tämä ei takaa että kuva on valittu
-                createBtnEnabled = true;
+                ma.createFromPdf = true;
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                intent.setType("application/pdf");
+                ma.onActivityResult.launch(intent);
+
+                //'Luo' painike käyttöön
+                createFromPdf = true;
+                positiveButton.setEnabled(true);
             }
         });
         //Luo ja peruuta painikkeet
@@ -76,6 +89,7 @@ public class NewProjectFragment extends DialogFragment {
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        //TODO Poista mahdollinen valittu kuva imageviewistä
                     }
                 });
 
@@ -88,17 +102,16 @@ public class NewProjectFragment extends DialogFragment {
         super.onStart();
         AlertDialog d = (AlertDialog) getDialog();
         if (d != null) {
-            final Button positiveButton = (Button) d.getButton(Dialog.BUTTON_POSITIVE);
+            positiveButton = (Button) d.getButton(Dialog.BUTTON_POSITIVE);
 
-            positiveButton.setEnabled(true);   //oletuksena pois käytöstä, kun muokataan annetaan tallennusmahdollisuus
             positiveButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //Lisää välimuuttujasta ladatun kuvan bitmappiin ja canvakselle
-                    ma.configBitmap();
+                    //TODO puutteen ominaisuuksien valitseminen & niiden lähettäminen mainactivityyn tallennusta varten
                     dismiss();
                 }
             });
         }
     }
+
 }

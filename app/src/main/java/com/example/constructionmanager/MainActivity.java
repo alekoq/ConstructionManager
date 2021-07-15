@@ -6,11 +6,14 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ClipData;
+import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -20,18 +23,25 @@ import android.graphics.PorterDuff;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.pdf.PdfRenderer;
 import android.net.Uri;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputLayout;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
@@ -41,31 +51,40 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.rendering.*;
-import java.io.*;
 
-//import javax.imageio.*;
-//import java.awt.image.*;
+import com.sun.pdfview.PDFFile;
+import com.sun.pdfview.PDFPage;
+
+
+import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.RectF;
+import android.os.Bundle;
+import android.util.Base64;
 
 public class MainActivity extends AppCompatActivity{
 
@@ -126,6 +145,9 @@ public class MainActivity extends AppCompatActivity{
     private boolean isLongPressed=false;
     //apumuuttuja poista valikon näkymiseen
     private boolean showDelete=false;
+
+    //apumuuttuja kuvan/pdf:n valitsemiseen (koska requestCode ei toimi, eikä intent.identifieriä voi käyttää
+    boolean createFromPdf = false;
 
 
 
@@ -227,152 +249,17 @@ public class MainActivity extends AppCompatActivity{
         newProjectBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                NewProjectFragment npf = new NewProjectFragment();
-                npf.show(getSupportFragmentManager(), "newProject");
+                if(unsaved){
+                    confirmContinue("project");
+                }
+                createNewProject();
             }
         });
     }
 
-
-    //method to convert your text to image
-    public Bitmap textAsBitmap(String text, float textSize, int textColor) {
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setTextSize(textSize);
-        paint.setColor(textColor);
-        paint.setTextAlign(Paint.Align.LEFT);
-        float baseline = -paint.ascent(); // ascent() is negative
-        int width = (int) (paint.measureText(text) + 0.0f); // round
-        int height = (int) (baseline + paint.descent() + 0.0f);
-        Bitmap image = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-
-        Canvas canvas = new Canvas(image);
-        //ympyrän ääriviivan piirtäminen täällä ei oikein onnistu
-        canvas.drawText(text, 0, baseline, paint);
-        return image;
-    }
-
-    public void newFab(FlawInfo fi){
-        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        lp.leftMargin = (int) prvX-centerText;
-        lp.topMargin = (int) prvY-centerText;
-
-        //Luo fabin ominaisuudet
-        newFab(fi, lp);
-
-        flawInfoList.add(fi);
-    }
-
-    public void newFab(FlawInfo fi, RelativeLayout.LayoutParams lp) {
-        final FlawActionButton fab = new FlawActionButton(this);
-
-
-        //Klikkaaminen näyttää fabin tiedot ja mahdollistaa niiden muokkaamisen
-        fab.setOnClickListener(new View.OnClickListener(){
-
-            @Override
-            public void onClick(View v){
-                System.out.println(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath());
-                showInfoFragment(fab);
-            }
-        });
-
-
-        //Kun painetaan pitkään voidaan merkintää siirtää
-        fab.setOnLongClickListener(new View.OnLongClickListener(){
-            @Override
-            public boolean onLongClick(View v) {
-                isLongPressed=true;
-
-                /*
-                //Avaa poistovalikko
-                showDelete = true;
-
-                // retrieve the stored coordinates
-                int x = (int)fab.getX();
-                int y = (int)fab.getY();
-                // create the popup window
-                int width = LinearLayout.LayoutParams.WRAP_CONTENT;
-                int height = LinearLayout.LayoutParams.WRAP_CONTENT;
-                deletePopup dp = new deletePopup(imageView, x,y,width,height);
-*/
-
-                
-
-                v.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View view, MotionEvent event) {
-                        switch (event.getActionMasked()) {
-                            case MotionEvent.ACTION_MOVE:
-                                //Poista merkintä häviää
-                                if(showDelete){
-                                    showDelete = false;
-                                    //popup.dismiss();
-                                }
-
-
-
-                                //Arvot saatu puhtaasti testaamalla
-                                view.setX(event.getRawX() - imageView.getWidth()/50); //Puhelin : (event.getRawX() - imageView.getWidth()/30)
-                                view.setY(event.getRawY() - imageView.getHeight()/6 ); //Puhelin: (event.getRawY() - imageView.getHeight()/4 - imageView.getHeight()/30)
-                                break;
-                            case MotionEvent.ACTION_UP:
-                                // Painalluksen loppuessa asetetaan fabin uuden sijainnin arvo
-                                if(isLongPressed){
-                                    //Määritetään fabin FlawInfo-luokalle xy-koordinaatit niiden selaamista varten
-                                    int[] loc = new int[2];
-                                    view.getLocationOnScreen(loc);
-                                    fab.getFlawInfo().setLeftMargin(loc[0]);
-                                    //menubar ilmeisesti laittaa tämän liian alas. Korjaan kokeilemalla arvoja koska en tiedä mistä saa menun korkeuden
-                                    fab.getFlawInfo().setTopMargin(loc[1]-175);
-                                    //päästettiin irti
-                                    isLongPressed=false;
-
-                                    //tallentamattomia muutoksia
-                                    unsaved=true;
-                                }
-                                view.setOnTouchListener(null);
-                                break;
-                            default:
-                                break;
-                        }
-
-                        return true;
-                    }
-                });
-                return true;
-            }
-
-        });
-
-        //Jos puutteen tietojen counter on suurempi kuin yleiscounter, päivitetään yleiscounter
-        // Tilanne voi olla tämä jos ladataan vanha projekti josta on poistettu puutteita
-        if(fi.getCounter() > counter){
-            counter = fi.getCounter();
-        }
-
-        //Painikkeen asetukset
-        fab.setAlpha(0.65f);
-        fab.setBackgroundColor(Color.RED);
-        fab.setBackgroundTintList(colorList);
-        //DrawableCompat.setTintList(DrawableCompat.wrap(fab.getBackground()), testList);
-        //fab.setBackgroundColor(Color.TRANSPARENT);
-        fab.setSize(FloatingActionButton.SIZE_MINI);
-        fab.setImageBitmap(textAsBitmap(Integer.toString(counter), 40, Color.WHITE));
-        fab.setFlawInfo(fi);
-        fab.setLayoutParams(lp);
-
-        //Määritetään fabin FlawInfo-luokalle xy-koordinaatit niiden selaamista varten
-        fab.getFlawInfo().setLeftMargin(lp.leftMargin);
-        fab.getFlawInfo().setTopMargin(lp.topMargin);
-
-        //Lisää painike listaan, jotta sitä voidaan myöhemmin käsitellä
-        fabList.add(fab);
-
-        //Lisää painike näkymään
-        layout.addView(fab);
-        counter++;
-        //tallentamattomia muutoksia
-        unsaved=true;
+    private void createNewProject(){
+        NewProjectFragment npf = new NewProjectFragment();
+        npf.show(getSupportFragmentManager(), "newProject");
     }
 
 
@@ -392,13 +279,6 @@ public class MainActivity extends AppCompatActivity{
 
         infoFragment.show(getSupportFragmentManager(), "infoFragment");
     }
-
-    //fabin poistamiseen
-    public void deleteFAB(FlawActionButton fab){
-        flawInfoList.remove(fab.getFlawInfo());
-        layout.removeView(fab);
-    }
-
 
 
     @Override
@@ -429,8 +309,10 @@ public class MainActivity extends AppCompatActivity{
                 }
                 return true;
             case R.id.newProject:
-                NewProjectFragment npf = new NewProjectFragment();
-                npf.show(getSupportFragmentManager(), "newProject");
+                if(unsaved){
+                    confirmContinue("project");
+                }
+                createNewProject();
                 return true;
             case R.id.save:
                 if (blueprintLoaded) {
@@ -513,8 +395,8 @@ public class MainActivity extends AppCompatActivity{
                             if(functionCall=="data"){
                                 loadData();
                             }
-                            else if(functionCall=="image"){
-                                loadImage();
+                            else if(functionCall=="project"){
+                                createNewProject();
                             }
                         }
                     }
@@ -533,17 +415,6 @@ public class MainActivity extends AppCompatActivity{
         builder.create().show();
     }
 
-    //Tarkistaa onko tallentamattomia muutoksia, sitten avaa gallerian
-    public void openGallery(){
-        if(unsaved) {
-            confirmContinue("image");
-        }
-        else if (checkPermission()){
-            loadImage();
-        }
-    }
-
-
     //Ikonin väärin muutos (kun valittuna) vaatii tämän
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -553,60 +424,41 @@ public class MainActivity extends AppCompatActivity{
         return true;
     }
 
-    //Määrittää valitun kuvan ja asettaa sen imageViewiin
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    //onActivityResult (vanha ratkaisu) on vanhentunut (deprecated)
+    ActivityResultLauncher<Intent> onActivityResult = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if(result.getResultCode() == RESULT_OK && result.getData() != null){
+                        fileData = result.getData().getData();
 
-
-        if (resultCode == RESULT_OK  && data != null) {
-
-            if (requestCode == RQS_IMAGE1) {
-                    //Kuvan data välimuuttujaan
-                    fileData = data.getData();
-                    //configBitmap(); Asettaa valitun kuvan bitmappiin/canvakselle
-                    //Projektin luominen vasta kun "Luodaan" se NewProjectFramentissa
-
+                        //Jos valittu kuva eikä pdf:ää
+                        if(!createFromPdf){
+                            configBitmap();
+                        }
+                        else{
+                            createFromPdf();
+                        }
+                    }
+                }
             }
-            else if(requestCode == PICKFILE_RESULT_CODE){
-                fileData = data.getData();
+    );
 
-                //pdfToImage();
-                //TODO PDF to image
-            }
-        }
+    public void disableNewProjectBtn(){
+        //Otetaan aloituspainike pois käytöstä ja näkyvistä
+        newProjectBtn.setVisibility(View.GONE);
     }
 
     //Asettaa valitun kuvan bitmappiin/canvakselle
     public void configBitmap(){
-        //Otetaan aloituspainike pois käytöstä ja näkyvistä
-        newProjectBtn.setVisibility(View.GONE);
-
-        Bitmap tempBitmap;
 
         try {
-            tempBitmap = BitmapFactory.decodeStream(
+            bitmapMaster = BitmapFactory.decodeStream(
                     getContentResolver().openInputStream(fileData));
 
-            Bitmap.Config config;
-            if (tempBitmap.getConfig() != null) {
-                config = tempBitmap.getConfig();
-            } else {
-                config = Bitmap.Config.ARGB_8888;
-            }
-
-
-            bitmapMaster = Bitmap.createBitmap(
-                    tempBitmap.getWidth(),
-                    tempBitmap.getHeight(),
-                    config);
-
-
-
-            canvasMaster = new Canvas(bitmapMaster);
-            canvasMaster.drawBitmap(tempBitmap, 0, 0, null);
-
-            imageView.setImageBitmap(bitmapMaster);
+            //imageView.setImageBitmap(bitmapMaster);
+            setBitmap(bitmapMaster);
 
             //alustetaan tietyt muuttujat
             initialize();
@@ -616,27 +468,135 @@ public class MainActivity extends AppCompatActivity{
 
             blueprintLoaded = true;
 
-
             //jos kuva ei löydy
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            toast(getString(R.string.fileNotFound));
         }
     }
 
-    /**
-    private void pdfToImage(){
-        PDDocument pd = PDDocument.load (new File (in));
-        PDFRenderer pr = new PDFRenderer (pd);
-        BufferedImage bi = pr.renderImageWithDPI(0, 300);
+    public void createFromPdf(){
+        String filename = fileData.getLastPathSegment();
 
-        ImageIO.write (bi, "JPEG", new File (out));
-
-    } catch (Exception e) {
+        try {
+            renderPdf(filename);
+        }catch (IOException e){
             e.printStackTrace();
+            toast(getString(R.string.fileNotFound));
         }
 
     }
-     */
+
+    //Näyttää oletuksena pdf:n 1. sivun imageViewissä TOIMII. Kysyy sivusta jos useampia.
+    // Sivun valitsemisen takia pilkottu funktio kahteen osaan. Jälkimmäinen showPDF näyttää valitun sivun ja sulkee ParcelFileDescriptorin ja PdfRendererin
+    private void renderPdf(String filename) throws IOException{
+        int pageCount;
+
+        //Tehdään välimuistiin kopio pdf-tiedostosta (koska polkua tiedostoon ei ole saatavilla ja fileDescriptor tarvitsee sen)
+        File filecopy = new File(getCacheDir(), filename);
+        if(!filecopy.exists()){
+            //luetaan inputStreamilla tiedosto ja kirjoitetaan välimuistiin kopio
+            InputStream inputStream = getContentResolver().openInputStream(fileData);
+            FileOutputStream output = new FileOutputStream(filecopy);
+
+            final byte[] buffer = new byte[1024];
+            int size;
+            while ((size = inputStream.read(buffer)) != -1) {
+                output.write(buffer, 0, size);
+            }
+            inputStream.close();
+            output.close();
+        }
+
+        //Avataan kopio välimuistista
+        ParcelFileDescriptor fileDescriptor = ParcelFileDescriptor.open(filecopy, ParcelFileDescriptor.MODE_READ_ONLY);
+
+        // create a new renderer
+        if (fileDescriptor != null) {
+            PdfRenderer pdfRenderer = new PdfRenderer(fileDescriptor);
+
+            //tarkastetaan sivumäärä. Jos useampia, käyttäjä voi valita haluamansa sivun.
+            pageCount = pdfRenderer.getPageCount();
+
+            if(pageCount > 1){
+                selectPdfPageDialogOpener(pdfRenderer, fileDescriptor, pageCount);
+            }
+
+            else {
+                showPDF(pdfRenderer, fileDescriptor, 0);
+            }
+        }
+    }
+
+    private void showPDF(PdfRenderer pdfRenderer, ParcelFileDescriptor fileDescriptor, int pageToOpen) throws IOException{
+        PdfRenderer.Page page = pdfRenderer.openPage(pageToOpen);
+
+        Bitmap bitmap = Bitmap.createBitmap(page.getWidth(), page.getHeight(),
+                Bitmap.Config.ARGB_8888);
+
+        page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+
+        //asetetaan luettu pdf (bitmap) imageViewiin
+        setBitmap(bitmap);
+
+        page.close();
+        pdfRenderer.close();
+        fileDescriptor.close();
+
+        initialize();
+        blueprintLoaded = true;
+    }
+
+    //Sivunumeron valitsemiseen jos PDF:ssä useita sivuja. HUOM! Jos tästä poistuu muuten kuin OK:lla jää renderit sulkematta
+    private void selectPdfPageDialogOpener(final PdfRenderer pdfRenderer, final ParcelFileDescriptor fileDescriptor, int pageCount){
+        // luodaan dialogi
+        AlertDialog.Builder builder =
+                new AlertDialog.Builder(MainActivity.this);
+        final View selectPageDialogView = MainActivity.this.getLayoutInflater().inflate(
+                R.layout.select_page, null);
+
+        builder.setView(selectPageDialogView); // lisätään GUI dialogiin
+        builder.setTitle(R.string.pdf);         //otsikko
+
+        builder.setCancelable(false);
+
+        //pudotusvalikko
+        final Spinner spinner = (Spinner)selectPageDialogView.findViewById(R.id.pageSpinner);
+
+        //ladataan sivunumerot pudotusvalikkoon
+        List<String> spinnerArray = new ArrayList<>();
+
+        for (int i = 1; i <= pageCount; i++)
+        {
+                spinnerArray.add(Integer.toString(i));
+        }
+
+        //android.R.layout.simple_spinner_item
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.spinner_text, spinnerArray);
+
+        adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown);
+        spinner.setAdapter(adapter);
+
+
+        // lisätään Add flaw painike
+        builder.setPositiveButton(R.string.OK,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        int page = Integer.parseInt(spinner.getSelectedItem().toString());
+                        try {
+                            showPDF(pdfRenderer, fileDescriptor, page-1);
+                        } catch (IOException e){
+                            e.printStackTrace();
+                            toast(getString(R.string.pdfFail));
+                        }
+                    }
+                });
+
+        // näytetään dialogi
+        builder.create().show();
+    }
+
 
     //varmistaa että on asetettu laitteesta lupa lataamiseen/tallentamiseen
     private boolean checkPermission() {
@@ -683,6 +643,160 @@ public class MainActivity extends AppCompatActivity{
         return false;
     }
 
+    /**
+     * FlawActionButtoneihin FAB liittyvät funktiot
+     * ***********************************************************************************************************
+     */
+
+    //method to convert your text to image
+    public Bitmap textAsBitmap(String text, float textSize, int textColor) {
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setTextSize(textSize);
+        paint.setColor(textColor);
+        paint.setTextAlign(Paint.Align.LEFT);
+        float baseline = -paint.ascent(); // ascent() is negative
+        int width = (int) (paint.measureText(text) + 0.0f); // round
+        int height = (int) (baseline + paint.descent() + 0.0f);
+        Bitmap image = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(image);
+        //ympyrän ääriviivan piirtäminen täällä ei oikein onnistu
+        canvas.drawText(text, 0, baseline, paint);
+        return image;
+    }
+
+    public void newFab(FlawInfo fi){
+        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        lp.leftMargin = (int) prvX-centerText;
+        lp.topMargin = (int) prvY-centerText;
+
+        //Luo fabin ominaisuudet
+        newFab(fi, lp);
+
+        flawInfoList.add(fi);
+    }
+
+    public void newFab(FlawInfo fi, RelativeLayout.LayoutParams lp) {
+        final FlawActionButton fab = new FlawActionButton(this);
+
+
+        //Klikkaaminen näyttää fabin tiedot ja mahdollistaa niiden muokkaamisen
+        fab.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v){
+                System.out.println(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath());
+                showInfoFragment(fab);
+            }
+        });
+
+
+        //Kun painetaan pitkään voidaan merkintää siirtää
+        fab.setOnLongClickListener(new View.OnLongClickListener(){
+            @Override
+            public boolean onLongClick(View v) {
+                isLongPressed=true;
+
+                /*
+                //Avaa poistovalikko
+                showDelete = true;
+
+                // retrieve the stored coordinates
+                int x = (int)fab.getX();
+                int y = (int)fab.getY();
+                // create the popup window
+                int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+                int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+                deletePopup dp = new deletePopup(imageView, x,y,width,height);
+*/
+
+
+
+                v.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent event) {
+                        switch (event.getActionMasked()) {
+                            case MotionEvent.ACTION_MOVE:
+                                //Poista merkintä häviää
+                                if(showDelete){
+                                    showDelete = false;
+                                    //popup.dismiss();
+                                }
+
+
+
+                                //Arvot saatu puhtaasti testaamalla
+                                view.setX(event.getRawX() - imageView.getWidth()/50); //Puhelin : (event.getRawX() - imageView.getWidth()/30)
+                                view.setY(event.getRawY() - imageView.getHeight()/6 ); //Puhelin: (event.getRawY() - imageView.getHeight()/4 - imageView.getHeight()/30)
+                                break;
+                            case MotionEvent.ACTION_UP:
+                                // Painalluksen loppuessa asetetaan fabin uuden sijainnin arvo
+                                if(isLongPressed){
+                                    //Määritetään fabin FlawInfo-luokalle xy-koordinaatit niiden selaamista varten
+                                    int[] loc = new int[2];
+                                    view.getLocationOnScreen(loc);
+                                    fab.getFlawInfo().setLeftMargin(loc[0]);
+                                    //menubar ilmeisesti laittaa tämän liian alas. Korjaan kokeilemalla arvoja koska en tiedä mistä saa menun korkeuden
+                                    fab.getFlawInfo().setTopMargin(loc[1]-175);
+                                    //päästettiin irti
+                                    isLongPressed=false;
+
+                                    //tallentamattomia muutoksia
+                                    unsaved=true;
+                                }
+                                view.setOnTouchListener(null);
+                                break;
+                            default:
+                                break;
+                        }
+
+                        return true;
+                    }
+                });
+                return true;
+            }
+
+        });
+
+        //Jos puutteen tietojen counter on suurempi kuin yleiscounter, päivitetään yleiscounter
+        // Tilanne voi olla tämä jos ladataan vanha projekti josta on poistettu puutteita
+        if(fi.getCounter() > counter){
+            counter = fi.getCounter();
+        }
+
+        //Painikkeen asetukset
+        fab.setAlpha(0.65f);
+        fab.setBackgroundColor(Color.RED);
+        fab.setBackgroundTintList(colorList);
+        //DrawableCompat.setTintList(DrawableCompat.wrap(fab.getBackground()), testList);
+        //fab.setBackgroundColor(Color.TRANSPARENT);
+        fab.setSize(FloatingActionButton.SIZE_MINI);
+        fab.setImageBitmap(textAsBitmap(Integer.toString(counter), 40, Color.WHITE));
+        fab.setFlawInfo(fi);
+        fab.setLayoutParams(lp);
+
+        //Määritetään fabin FlawInfo-luokalle xy-koordinaatit niiden selaamista varten
+        fab.getFlawInfo().setLeftMargin(lp.leftMargin);
+        fab.getFlawInfo().setTopMargin(lp.topMargin);
+
+        //Lisää painike listaan, jotta sitä voidaan myöhemmin käsitellä
+        fabList.add(fab);
+
+        //Lisää painike näkymään
+        layout.addView(fab);
+        counter++;
+        //tallentamattomia muutoksia
+        unsaved=true;
+    }
+
+    //fabin poistamiseen
+    public void deleteFAB(FlawActionButton fab){
+        flawInfoList.remove(fab.getFlawInfo());
+        layout.removeView(fab);
+    }
+    /**
+     -------------------------------------------------------------------------------------------------------------
+     */
 
     /**
      * Apufunktioita tallennukseen ja lataamiseen
@@ -701,19 +815,6 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
-    //Lataa galleriasta pohjapiirroksen
-    private void loadImage(){
-            Intent intent = new Intent(Intent.ACTION_PICK,
-                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            startActivityForResult(intent, RQS_IMAGE1);
-    }
-
-    public void loadPDF(){
-        Intent intent = new Intent();
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        intent.setType("application/pdf");
-        startActivityForResult(intent, PICKFILE_RESULT_CODE);
-    }
 
     //Luo uuden LoadProjectFragmentin jossa voi valita ladattavan projektin. Kutsuu tiedostonimen perusteella loadProject()
     private void loadData(){
@@ -770,8 +871,9 @@ public class MainActivity extends AppCompatActivity{
         builder.create().show();
     }
 
-    /************************************************************************************************************
-     */
+    /**
+     -------------------------------------------------------------------------------------------------------------
+    */
 
     /**
      * VARSINAISIA TALLENNUS JA LATAUSFUNKTIOITA
@@ -908,8 +1010,6 @@ public class MainActivity extends AppCompatActivity{
     public void loadProject(String fileName) {
         SaveBitmap sb = new SaveBitmap();
 
-        Bitmap tempBitmap;
-
         try {
             initialize();
 
@@ -922,8 +1022,9 @@ public class MainActivity extends AppCompatActivity{
             in.close();
             fileIn.close();
 
-            tempBitmap = sb.getBm();
+            bitmapMaster = sb.getBm();
 
+            /**
             Bitmap.Config config;
             config = tempBitmap.getConfig();
 
@@ -935,8 +1036,9 @@ public class MainActivity extends AppCompatActivity{
 
             canvasMaster = new Canvas(bitmapMaster);
             canvasMaster.drawBitmap(tempBitmap, 0, 0, null);
+            */
 
-            imageView.setImageBitmap(bitmapMaster);
+            setBitmap(bitmapMaster);
 
             //Puutteet
             fileIn = new FileInputStream(dir + projects + "/" + fileName + "Save.ser");
@@ -982,6 +1084,10 @@ public class MainActivity extends AppCompatActivity{
         Pienempiä apufunktioita
      */
 
+    private void setBitmap(Bitmap bm){
+        imageView.setImageBitmap(bm);
+        disableNewProjectBtn();
+    }
 
     //alustaa muuttujat jos on tehty muutoksia ja ladataankin uusi kuva
     private void initialize(){

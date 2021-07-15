@@ -73,9 +73,9 @@ public class LoadProjectFragment extends DialogFragment {
 
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getContext(), android.R.layout.simple_spinner_item, spinnerArray);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getContext(), R.layout.spinner_text, spinnerArray);
 
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown);
         spinner.setAdapter(adapter);
 
         return builder.create();
