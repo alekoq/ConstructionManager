@@ -13,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -27,6 +28,7 @@ import android.graphics.pdf.PdfRenderer;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.google.android.material.chip.ChipDrawable;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -40,8 +42,15 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.Spanned;
+import android.text.TextWatcher;
+import android.text.style.ImageSpan;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
@@ -53,6 +62,7 @@ import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
@@ -176,6 +186,11 @@ public class MainActivity extends AppCompatActivity{
     // tallentaa viimeisimmän kosketuksen koordinaatit. Hyödynnetään popUpWindowissa
     private float[] lastTouchDownXY = new float[2];
 
+    //toastit thread classista tulee tämän kautta
+    Handler mHandler;
+
+
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -188,6 +203,7 @@ public class MainActivity extends AppCompatActivity{
         icon = getResources().getDrawable(R.drawable.ic_baseline_add_24);
 
         layout = findViewById(R.id.imageRelativeLayout);
+
         //Määrittää aloitusnäytön painikkeen
         setNewProjectBtn();
 
@@ -203,16 +219,12 @@ public class MainActivity extends AppCompatActivity{
         paintText.setColor(Color.RED);
         paintText.setTextSize(32);
 
-        //Zoom ei toimi (gradle PhotoView)
-        //PhotoViewAttacher pAttacher;
-        //pAttacher = new PhotoViewAttacher(imageView);
-        //pAttacher.update();
-
         //Luo sovellukselle oman kansion jos sitä ei jo ole
         createAppDir();
 
         //poistamiseen popUp
         popUp = new PopupWindow(this);
+
 
 
         //näytön koko (Ei tarvita tällä hetkellä?)
@@ -241,6 +253,23 @@ public class MainActivity extends AppCompatActivity{
             }
         });
 
+        //Toastit toisesta threadista tämän kautta
+        mHandler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                // This is where you do your work in the UI thread.
+                // Your worker tells you in the message what to do.
+                if(msg.what == 11){
+                    toast(getString(R.string.projectSaved));
+
+                    //kaikki tallennettu
+                    unsaved=false;
+                }
+                else if(msg.what == 10){
+                    toast(getString(R.string.projectSaveError));
+                }
+            }
+        };
     }
 
     private void setNewProjectBtn(){
@@ -261,6 +290,7 @@ public class MainActivity extends AppCompatActivity{
         NewProjectFragment npf = new NewProjectFragment();
         npf.show(getSupportFragmentManager(), "newProject");
     }
+
 
 
     //funktio avaa flawFragmentin kun lisätään uutta Puutetta
@@ -312,23 +342,29 @@ public class MainActivity extends AppCompatActivity{
                 if(unsaved){
                     confirmContinue("project");
                 }
-                createNewProject();
+                else{
+                    createNewProject();
+                }
                 return true;
             case R.id.save:
-                if (blueprintLoaded) {
-                    if(bitmapMaster != null && checkPermission()){
+                if (blueprintLoaded && checkPermission()) {
                         //Luo alertdialogin jossa kysytään millä nimellä tallennetaan. Tallentaa samalla nimellä sekä kuvan että csv:n
                         showSaveAsDialog(true);
-                    }
                 }
+                else
+                    toast(getString(R.string.noChanges));
                 return true;
             case R.id.saveProject:
                 if(checkPermission())
                     saveProject(loadedSave);
+                else
+                    toast(getString(R.string.noPermission));
                 return true;
             case R.id.saveAsProject:
                 if(flawInfoList.size()>0 && checkPermission())
                     showSaveAsDialog(false);
+                else
+                    toast(getString(R.string.noChanges));
                 return true;
             case R.id.loadProject:
                 if(unsaved){
@@ -415,7 +451,7 @@ public class MainActivity extends AppCompatActivity{
         builder.create().show();
     }
 
-    //Ikonin väärin muutos (kun valittuna) vaatii tämän
+    //Ikonin värin muutos (kun valittuna) vaatii tämän
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         MenuItem item = menu.findItem(R.id.addFlaw);
@@ -465,8 +501,6 @@ public class MainActivity extends AppCompatActivity{
 
             //Tarvitaan kuvan säilyttämiseen kun laitetta käännetään. EI TOIMINNASSA
             //imageRetainingFragment.setImage(bitmapMaster);
-
-            blueprintLoaded = true;
 
             //jos kuva ei löydy
         } catch (FileNotFoundException e) {
@@ -766,7 +800,8 @@ public class MainActivity extends AppCompatActivity{
 
         //Painikkeen asetukset
         fab.setAlpha(0.65f);
-        fab.setBackgroundColor(Color.RED);
+        fab.setBackgroundResource(0);
+        //fab.setBackgroundColor(Color.RED);
         fab.setBackgroundTintList(colorList);
         //DrawableCompat.setTintList(DrawableCompat.wrap(fab.getBackground()), testList);
         //fab.setBackgroundColor(Color.TRANSPARENT);
@@ -906,13 +941,12 @@ public class MainActivity extends AppCompatActivity{
 
         String file = dir + csvs + "/" +  fileName + ".csv";
 
+        //TODO Tarkista onko tiedosto olemassa ja kysy käyttäjältä jatkosta
 
         /*
-        TODO Tarkista onko tiedosto olemassa ja kysy käyttäjältä jatkosta
-
         File f = new File(file);
         if(f.exists()){
-
+            toast(getString(R.string.fileExists));
         }
         */
 
@@ -966,44 +1000,7 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void saveProject(String fileName) {
-        //erota bitmap imageView:stä
-        BitmapDrawable draw = (BitmapDrawable) imageView.getDrawable();
-        Bitmap bm = draw.getBitmap();
-
-        //Luo tallennusolio bitmapille
-        // TODO Molemmat samaan tallennustiedostoon
-        SaveBitmap sb = new SaveBitmap(bm);
-
-        //Bitmap ja puutteet tallennetaan erikseen ja omiin tiedostoihinsa koska en osannut yhdistää tallennusta
-        try {
-            //Bitmapin tallennus
-            FileOutputStream fileOut = new FileOutputStream(dir + projects + "/" + fileName + "Bitmap.ser");
-            ObjectOutputStream out = new ObjectOutputStream(fileOut);
-
-            sb.writeObject(out);
-
-            out.close();
-            fileOut.close();
-
-            //Puutteet
-            fileOut = new FileOutputStream(dir + projects + "/" + fileName + "Save.ser");
-            out = new ObjectOutputStream(fileOut);
-
-            out.writeObject(flawInfoList);
-
-            out.close();
-            fileOut.close();
-            toast(getString(R.string.projectSaved));
-
-            //ei tallentamattomia muutoksia
-            unsaved=false;
-
-        } catch (IOException i) {
-            i.printStackTrace();
-            toast(getString(R.string.projectSaveError));
-        }
-
-
+        saveProject sp = new saveProject(fileName, this, imageView, flawInfoList, dir, mHandler);
     }
 
 
@@ -1023,20 +1020,6 @@ public class MainActivity extends AppCompatActivity{
             fileIn.close();
 
             bitmapMaster = sb.getBm();
-
-            /**
-            Bitmap.Config config;
-            config = tempBitmap.getConfig();
-
-            bitmapMaster = Bitmap.createBitmap(
-                    tempBitmap.getWidth(),
-                    tempBitmap.getHeight(),
-                    config);
-
-
-            canvasMaster = new Canvas(bitmapMaster);
-            canvasMaster.drawBitmap(tempBitmap, 0, 0, null);
-            */
 
             setBitmap(bitmapMaster);
 
@@ -1084,13 +1067,17 @@ public class MainActivity extends AppCompatActivity{
         Pienempiä apufunktioita
      */
 
-    private void setBitmap(Bitmap bm){
+    public void setBitmap(Bitmap bm){
+        //asetetaan bitmap
         imageView.setImageBitmap(bm);
+        //boolean bitmapin asettamisen tarkistamiseksi (ei voida esim tallentaa jos tämä false)
+        blueprintLoaded = true;
+        //otetaan aloituspainike pois käytöstä
         disableNewProjectBtn();
     }
 
     //alustaa muuttujat jos on tehty muutoksia ja ladataankin uusi kuva
-    private void initialize(){
+    public void initialize(){
         //asetetaan numerointi oikein
         counter = 1;
 
@@ -1130,7 +1117,7 @@ public class MainActivity extends AppCompatActivity{
     }
 
     //Funktio ponnahdusilmoituksen esittämiseen
-    private void toast(String s){
+    public void toast(String s){
         Toast message = Toast.makeText(MainActivity.this, s,
                 Toast.LENGTH_LONG);
         message.setGravity(Gravity.CENTER, message.getXOffset() / 2,

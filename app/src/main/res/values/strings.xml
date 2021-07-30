@@ -21,7 +21,7 @@
     <string name="title_info_dialog">Flaw info</string>
     <string name="edit">Edit</string>
     <string name="ret">Return</string>
-    <string name="version">v.0.2.1</string>
+    <string name="version">v.0.2.2</string>
     <string name="sep">,</string>
     <string name="saveas">Save as</string>
     <string name="saveimageas">Save image and flaws as</string>
@@ -59,4 +59,9 @@
     <string name="selectPage">Select page number</string>
     <string name="pdf">PDF</string>
     <string name="pdfFail">PDF rendering failed</string>
+    <string name="noPermission">No permission to use external storage</string>
+    <string name="fileExists">File already exists. Do you want to continue?</string>
+    <string name="somethingWentWrong">Something went wrong</string>
+    <string name="enterProperties">Enter the properties you want in your project</string>
+    <string name="properties">Properties</string>
 </resources>

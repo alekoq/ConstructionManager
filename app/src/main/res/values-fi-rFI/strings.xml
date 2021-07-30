@@ -45,7 +45,7 @@
     <string name="cont">Jatka</string>
     <string name="saveProject">Tallenna projekti</string>
     <string name="saveImage">Tallenna tulosteena</string>
-    <string name="version">v.0.2.1</string>
+    <string name="version">v.0.2.2</string>
     <string name="closingWarning">Oletko varma että haluat poistua sovelluksesta?</string>
     <string name="yes">Kyllä</string>
     <string name="del">Poista</string>
@@ -59,4 +59,9 @@
     <string name="selectPage">Valitse sivunumero</string>
     <string name="pdf">PDF</string>
     <string name="pdfFail">PDF renderöinti epäonnistui</string>
+    <string name="noPermission">Sovellukselle ei ole myönnetty lupaa käyttää puhelimen muistia.</string>
+    <string name="fileExists">Tiedosto on jo olemassa. Haluatko jatkaa?</string>
+    <string name="somethingWentWrong">Jotain meni pieleen</string>
+    <string name="enterProperties">Syötä haluamasi ominaisuudet</string>
+    <string name="properties">Ominaisuudet</string>
 </resources>

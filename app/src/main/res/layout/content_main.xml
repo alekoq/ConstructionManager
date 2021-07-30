@@ -21,6 +21,7 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:src="@tools:sample/avatars" />
 
+
     <Button
         android:id="@+id/newProject_btn"
         android:layout_width="wrap_content"
