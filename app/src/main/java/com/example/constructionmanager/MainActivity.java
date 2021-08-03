@@ -55,6 +55,7 @@ import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import android.view.Menu;
@@ -86,6 +87,7 @@ import java.util.List;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.rendering.*;
 
+import com.ortiz.touchview.TouchImageView;
 import com.sun.pdfview.PDFFile;
 import com.sun.pdfview.PDFPage;
 
@@ -189,6 +191,11 @@ public class MainActivity extends AppCompatActivity{
     //toastit thread classista tulee tämän kautta
     Handler mHandler;
 
+    //Zoomaukseen
+    private ScaleGestureDetector scaleGestureDetector;
+    private float mScaleFactor = 1.0f;
+
+    //TouchImageView tImageView;
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -203,6 +210,9 @@ public class MainActivity extends AppCompatActivity{
         icon = getResources().getDrawable(R.drawable.ic_baseline_add_24);
 
         layout = findViewById(R.id.imageRelativeLayout);
+
+        //Zoomaukseen
+        scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
 
         //Määrittää aloitusnäytön painikkeen
         setNewProjectBtn();
@@ -292,6 +302,22 @@ public class MainActivity extends AppCompatActivity{
     }
 
 
+    @Override
+    public boolean onTouchEvent(MotionEvent motionEvent) {
+        scaleGestureDetector.onTouchEvent(motionEvent);
+        return true;
+    }
+
+    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
+            mScaleFactor *= scaleGestureDetector.getScaleFactor();
+            mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 10.0f));
+            imageView.setScaleX(mScaleFactor);
+            imageView.setScaleY(mScaleFactor);
+            return true;
+        }
+    }
 
     //funktio avaa flawFragmentin kun lisätään uutta Puutetta
     public void showFlawFragment(){

@@ -62,6 +62,6 @@
     <string name="noPermission">No permission to use external storage</string>
     <string name="fileExists">File already exists. Do you want to continue?</string>
     <string name="somethingWentWrong">Something went wrong</string>
-    <string name="enterProperties">Enter the properties you want in your project</string>
-    <string name="properties">Properties</string>
+    <string name="features">Features</string>
+    <string name="enterFeatures">Enter the features you want in your project</string>
 </resources>

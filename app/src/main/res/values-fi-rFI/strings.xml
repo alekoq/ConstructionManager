@@ -62,6 +62,6 @@
     <string name="noPermission">Sovellukselle ei ole myönnetty lupaa käyttää puhelimen muistia.</string>
     <string name="fileExists">Tiedosto on jo olemassa. Haluatko jatkaa?</string>
     <string name="somethingWentWrong">Jotain meni pieleen</string>
-    <string name="enterProperties">Syötä haluamasi ominaisuudet</string>
-    <string name="properties">Ominaisuudet</string>
+    <string name="enterFeatures">Syötä haluamasi ominaisuudet</string>
+    <string name="features">Ominaisuudet</string>
 </resources>
