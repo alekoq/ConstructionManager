@@ -1,4 +1,4 @@
-# ConstructionManager ![Kopio CM_logo](https://user-images.githubusercontent.com/51992582/157675815-9134031f-dfb2-40e7-a3bd-2da1e9d8fa3a.png)
+# ConstructionManager ![Kopio CM_logo](https://user-images.githubusercontent.com/51992582/157675815-9134031f-dfb2-40e7-a3bd-2da1e9d8fa3a.png =125x125)
 
 Construction Manager is mobile app for construction inspection to make markings directly to floor plans and make full reports to field workers.
 
